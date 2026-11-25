@@ -1,0 +1,4040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Builder — Input patterns exploration</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@patternfly/patternfly@6.2.0/patternfly.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@patternfly/patternfly@6.2.0/patternfly-addons.css" />
+  <style>
+    :root {
+      --proto-bg: #f0f0f0;
+      --proto-panel: #fff;
+      --proto-border: #c7c7c7;
+      --proto-blue: #0066cc;
+      --proto-blue-light: #e7f1fa;
+      --proto-text: #151515;
+      --proto-muted: #6a6e73;
+      --proto-danger: #c9190b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Red Hat Text", "RedHatText", Helvetica, Arial, sans-serif;
+      background: var(--proto-bg);
+      color: var(--proto-text);
+      min-height: 100vh;
+    }
+
+    .proto-header {
+      background: #151515;
+      color: #fff;
+      padding: 1rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.5rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .proto-header h1 {
+      margin: 0;
+      font-size: 1.125rem;
+      font-weight: 500;
+    }
+
+    .proto-header p {
+      margin: 0.25rem 0 0;
+      font-size: 0.875rem;
+      color: #c7c7c7;
+    }
+
+    .proto-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      background: #3d3d3d;
+      font-size: 0.75rem;
+      color: #f0f0f0;
+    }
+
+    .proto-nav {
+      background: #fff;
+      border-bottom: 1px solid var(--proto-border);
+      padding: 0 1.5rem;
+      display: flex;
+      gap: 0.25rem;
+      overflow-x: auto;
+    }
+
+    .proto-nav button {
+      appearance: none;
+      border: none;
+      background: transparent;
+      padding: 0.9rem 1rem;
+      font: inherit;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--proto-muted);
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      white-space:nowrap;
+    }
+
+    .proto-nav button:hover { color: var(--proto-text); }
+    .proto-nav button[aria-selected="true"] {
+      color: var(--proto-blue);
+      border-bottom-color: var(--proto-blue);
+    }
+
+    .proto-main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    .proto-main.wide {
+      max-width: 1280px;
+    }
+
+    .panel {
+      background: var(--proto-panel);
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .panel h2 {
+      margin: 0 0 0.35rem;
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
+
+    .panel .lede {
+      margin: 0 0 1.25rem;
+      color: var(--proto-muted);
+      font-size: 0.875rem;
+      max-width: 65ch;
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--proto-muted);
+      margin: 0 0 0.75rem;
+    }
+
+    .callout {
+      background: var(--proto-blue-light);
+      border-left: 3px solid var(--proto-blue);
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .callout strong { font-weight: 600; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 800px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .compare-card {
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      padding: 1rem;
+      background: #fafafa;
+      height: 100%;
+    }
+
+    .compare-card h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .compare-card ul {
+      margin: 0.5rem 0 0;
+      padding-left: 1.1rem;
+      font-size: 0.8125rem;
+      color: #3c3f42;
+    }
+
+    .compare-card li { margin-bottom: 0.35rem; }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 0.15rem 0.45rem;
+      border-radius: 2px;
+      margin-bottom: 0.5rem;
+    }
+
+    .tag-current { background: #fef0e1; color: #8f4700; }
+    .tag-new { background: #e7f1fa; color: #002952; }
+    .tag-alt { background: #f2f0fc; color: #3c1899; }
+    .tag-turquoise { background: #e0f7f5; color: #0d6b64; }
+
+    /* ---- Form field styles (PF-inspired) ---- */
+    .field { margin-bottom: 1.25rem; }
+
+    .field-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+    }
+
+    .field-helper {
+      display: block;
+      margin-top: 0.35rem;
+      font-size: 0.75rem;
+      color: var(--proto-muted);
+    }
+
+    .field-desc {
+      margin: 0 0 1rem;
+      font-size: 0.875rem;
+      color: var(--proto-muted);
+    }
+
+    /* Chip / label input group */
+    .chip-group {
+      display: flex;
+      align-items: stretch;
+      gap: 0.5rem;
+    }
+
+    .chip-input-shell {
+      flex: 1;
+      min-height: 36px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.5rem;
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    .chip-input-shell:focus-within {
+      border-color: var(--proto-blue);
+      box-shadow: 0 0 0 1px var(--proto-blue);
+    }
+
+    .chip,
+    .pf-label {
+      background: #f0f0f0;
+      color: var(--proto-text);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.1rem 0.35rem 0.1rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.8125rem;
+      font-family: inherit;
+      font-weight: 500;
+      max-width: 100%;
+    }
+
+    .chip button {
+      appearance: none;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: #6a6e73;
+      font-size: 0.875rem;
+      line-height: 1;
+      padding: 0.15rem;
+      border-radius: 50%;
+    }
+
+    .chip button:hover {
+      background: rgba(0, 0, 0, 0.08);
+      color: var(--proto-text);
+    }
+
+    .chip-input-shell input {
+      flex: 1;
+      min-width: 140px;
+      border: none;
+      outline: none;
+      font: inherit;
+      font-size: 0.875rem;
+      padding: 0.25rem 0;
+      background: transparent;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--proto-border);
+      background: #fff;
+      color: var(--proto-text);
+      font: inherit;
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 0.35rem 0.75rem;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+      height: 36px;
+    }
+
+    .btn:hover { background: #f0f0f0; }
+
+    .btn-primary {
+      background: var(--proto-blue);
+      border-color: var(--proto-blue);
+      color: #fff;
+    }
+
+    .btn-primary:hover { background: #004d99; }
+
+    .btn-link {
+      border: none;
+      background: transparent;
+      color: var(--proto-blue);
+      padding: 0.35rem 0;
+      height: auto;
+      font-weight: 500;
+    }
+
+    .btn-link:hover {
+      background: transparent;
+      text-decoration: underline;
+    }
+
+    .btn-icon {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border-radius: 50%;
+      border: none;
+      background: #151515;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .btn-icon:hover { background: #3d3d3d; }
+    .btn-icon:disabled {
+      background: #d2d2d2;
+      cursor: not-allowed;
+    }
+
+    /* Field builder */
+    .fb-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .fb-table th {
+      text-align: left;
+      font-size: 0.875rem;
+      font-weight: 700;
+      padding: 0 0.75rem 0.5rem 0;
+    }
+
+    .fb-table th.actions,
+    .fb-table td.actions {
+      width: 40px;
+      padding-right: 0;
+    }
+
+    .fb-table td {
+      padding: 0 0.75rem 0.75rem 0;
+      vertical-align: top;
+    }
+
+    .fb-table input,
+    .text-input {
+      width: 100%;
+      height: 36px;
+      padding: 0 0.5rem;
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      font: inherit;
+      font-size: 0.875rem;
+      background: #fff;
+    }
+
+    .fb-table input:focus,
+    .text-input:focus {
+      outline: none;
+      border-color: var(--proto-blue);
+      box-shadow: 0 0 0 1px var(--proto-blue);
+    }
+
+    .fb-add {
+      margin-top: 0.25rem;
+    }
+
+    /* Users table (Pattern C) — Field Builder + nested chips */
+    .users-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      table-layout: fixed;
+      overflow: visible;
+    }
+
+    .users-table td {
+      overflow: visible;
+    }
+
+    .users-table .typeahead {
+      position: relative;
+      z-index: 1;
+    }
+
+    .users-table tr:focus-within .typeahead {
+      z-index: 30;
+    }
+
+    .users-table .typeahead-menu {
+      z-index: 40;
+    }
+
+    .users-table .label-group-shell {
+      min-height: 36px;
+    }
+
+    .users-table .typeahead-toggle {
+      min-height: 36px;
+    }
+
+    .users-table .typeahead-input {
+      min-width: 64px;
+      font-size: 0.8125rem;
+    }
+
+    .typeahead-count-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 1.5rem;
+      height: 1.25rem;
+      padding: 0 0.4rem;
+      border-radius: 999px;
+      background: var(--proto-blue);
+      color: #fff;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .typeahead-summary {
+      margin-top: 0.35rem;
+      font-size: 0.75rem;
+      color: var(--proto-muted);
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .typeahead-summary button {
+      appearance: none;
+      border: none;
+      background: none;
+      color: var(--proto-blue);
+      font: inherit;
+      font-size: inherit;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .typeahead-toggle.is-count-only {
+      flex-wrap: nowrap;
+      min-height: 36px;
+    }
+
+    .typeahead-toggle.is-count-only .typeahead-input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* ---- Page D: Users step explorations ---- */
+    .user-card {
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      background: #fff;
+      margin-bottom: 0.75rem;
+      overflow: hidden;
+    }
+
+    .user-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: #fafafa;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .user-card-title {
+      margin: 0;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-card-title .muted {
+      font-weight: 500;
+      color: var(--proto-muted);
+    }
+
+    .user-card-body {
+      padding: 1rem;
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85rem 1rem;
+    }
+
+    .form-grid-2 .span-2 { grid-column: 1 / -1; }
+
+    @media (max-width: 700px) {
+      .form-grid-2 { grid-template-columns: 1fr; }
+      .form-grid-2 .span-2 { grid-column: auto; }
+    }
+
+    .admin-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .pill-admin {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      background: #e7f1fa;
+      color: #002952;
+    }
+
+    .pill-admin.is-off {
+      background: #f0f0f0;
+      color: #6a6e73;
+    }
+
+    .accordion-row {
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      background: #fff;
+      margin-bottom: 0.5rem;
+      overflow: hidden;
+    }
+
+    .accordion-summary {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto auto;
+      gap: 0.75rem;
+      align-items: center;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: none;
+      background: #fff;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .accordion-summary:hover { background: #fafafa; }
+
+    .accordion-summary .name {
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+
+    .accordion-summary .meta {
+      font-size: 0.75rem;
+      color: var(--proto-muted);
+    }
+
+    .accordion-chevron {
+      color: #6a6e73;
+      transition: transform 0.15s ease;
+    }
+
+    .accordion-row.is-open .accordion-chevron {
+      transform: rotate(180deg);
+    }
+
+    .accordion-panel {
+      padding: 0 1rem 1rem;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .split-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 0;
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      overflow: hidden;
+      min-height: 360px;
+      background: #fff;
+    }
+
+    @media (max-width: 800px) {
+      .split-layout { grid-template-columns: 1fr; }
+    }
+
+    .split-list {
+      border-right: 1px solid var(--proto-border);
+      background: #fafafa;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .split-list-header {
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--proto-muted);
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .split-list-items {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .split-user-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.2rem;
+      width: 100%;
+      padding: 0.7rem 1rem;
+      border: none;
+      border-bottom: 1px solid #e0e0e0;
+      background: transparent;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .split-user-btn:hover { background: #f0f0f0; }
+
+    .split-user-btn.is-active {
+      background: #e7f1fa;
+      box-shadow: inset 3px 0 0 var(--proto-blue);
+    }
+
+    .split-user-btn .name {
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .split-user-btn .sub {
+      font-size: 0.75rem;
+      color: var(--proto-muted);
+    }
+
+    .split-list-footer {
+      padding: 0.75rem;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .split-detail {
+      padding: 1.25rem 1.5rem;
+    }
+
+    .split-detail-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      min-height: 280px;
+      color: var(--proto-muted);
+      font-size: 0.875rem;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .groups-picker {
+      position: relative;
+    }
+
+    .groups-picker-menu {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 4px);
+      z-index: 25;
+      max-height: 220px;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      padding: 0.35rem 0;
+    }
+
+    .groups-picker-option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.45rem 0.75rem;
+      border: none;
+      background: transparent;
+      font: inherit;
+      font-size: 0.875rem;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .groups-picker-option:hover { background: #e7f1fa; }
+
+    .groups-picker-option input {
+      width: auto;
+      height: auto;
+      margin: 0;
+    }
+
+    .groups-picker-create {
+      display: flex;
+      gap: 0.35rem;
+      padding: 0.5rem 0.75rem;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .groups-picker-create input {
+      flex: 1;
+      height: 32px;
+      padding: 0 0.5rem;
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      font: inherit;
+      font-size: 0.8125rem;
+    }
+
+    .why-note {
+      font-size: 0.8125rem;
+      color: #3c3f42;
+      background: #fafafa;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 0.65rem 0.85rem;
+      margin: 0 0 1rem;
+    }
+
+    .why-note strong { font-weight: 600; }
+
+    .users-table th {
+      text-align: left;
+      font-size: 0.875rem;
+      font-weight: 700;
+      padding: 0 0.5rem 0.5rem 0;
+    }
+
+    .users-table th:nth-child(1) { width: 14%; }
+    .users-table th:nth-child(2) { width: 14%; }
+    .users-table th:nth-child(3) { width: 22%; }
+    .users-table th:nth-child(4) { width: 32%; }
+    .users-table th:nth-child(5) { width: 10%; }
+    .users-table th:nth-child(6) { width: 40px; }
+
+    .users-table td {
+      padding: 0 0.5rem 0.85rem 0;
+      vertical-align: top;
+    }
+
+    .users-table td.actions {
+      width: 40px;
+      padding-right: 0;
+      padding-top: 0.25rem;
+    }
+
+    .users-table input[type="text"],
+    .users-table input[type="password"] {
+      width: 100%;
+      height: 36px;
+      padding: 0 0.5rem;
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      font: inherit;
+      font-size: 0.875rem;
+      background: #fff;
+    }
+
+    .users-table input:focus {
+      outline: none;
+      border-color: var(--proto-blue);
+      box-shadow: 0 0 0 1px var(--proto-blue);
+    }
+
+    .chip-group-compact {
+      display: flex;
+      align-items: stretch;
+      gap: 0.35rem;
+    }
+
+    .chip-group-compact .chip-input-shell {
+      flex: 1;
+      min-height: 36px;
+      min-width: 0;
+    }
+
+    .chip-group-compact .chip-input-shell input {
+      min-width: 72px;
+    }
+
+    .btn-add-square {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      background: #fff;
+      color: var(--proto-text);
+      font-size: 1.125rem;
+      line-height: 1;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-add-square:hover { background: #f0f0f0; }
+
+    /* Idea labels between stacked variants */
+    .idea-block {
+      position: relative;
+      z-index: 1;
+      margin-top: 1.75rem;
+      padding-top: 1.5rem;
+      border-top: 1px dashed var(--proto-border);
+    }
+
+    .idea-block:first-of-type {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+
+    .idea-block:focus-within {
+      z-index: 30;
+    }
+
+    .idea-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0 0 0.75rem;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: #3c3f42;
+    }
+
+    .idea-label .tag { margin-bottom: 0; }
+
+    /* Inline + inside the chip textbox */
+    .chip-input-shell.chip-input-inline-add {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem;
+      padding-right: 0.35rem;
+      position: relative;
+    }
+
+    .chip-input-shell.chip-input-inline-add .chip-inline-grow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .btn-add-inline {
+      appearance: none;
+      border: none;
+      background: transparent;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      margin-left: auto;
+      flex-shrink: 0;
+      align-self: center;
+      cursor: pointer;
+      color: #151515;
+      font-size: 1.25rem;
+      font-weight: 700;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 2px;
+    }
+
+    .btn-add-inline:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    /* Idea 3 — PF editable label group + add button */
+    .label-group-shell {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      min-height: 36px;
+      padding: 0.35rem 0.5rem;
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    .label-group-shell:focus-within {
+      border-color: var(--proto-blue);
+      box-shadow: 0 0 0 1px var(--proto-blue);
+    }
+
+    .label-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+    }
+
+    .pf-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      min-height: 24px;
+      padding: 0 0.5rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border: 1px solid transparent;
+      max-width: 100%;
+    }
+
+    .pf-label.is-editing {
+      padding: 0;
+      background: transparent;
+      border-radius: 0;
+    }
+
+    .pf-label-text {
+      appearance: none;
+      border: none;
+      background: transparent;
+      font: inherit;
+      font-weight: 500;
+      color: inherit;
+      cursor: text;
+      padding: 0;
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .pf-label-text:hover {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .pf-label-text:focus-visible {
+      outline: 2px solid var(--proto-blue);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
+    .pf-label-input {
+      height: 24px;
+      min-width: 80px;
+      max-width: 240px;
+      padding: 0 0.5rem;
+      border: 1px solid var(--proto-blue);
+      border-radius: 999px;
+      font: inherit;
+      font-size: 0.75rem;
+      font-weight: 500;
+      background: #fff;
+      box-shadow: 0 0 0 1px var(--proto-blue);
+    }
+
+    .pf-label-close {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: #6a6e73;
+      cursor: pointer;
+      font-size: 0.875rem;
+      line-height: 1;
+      padding: 0.1rem;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pf-label-close:hover {
+      background: rgba(0, 0, 0, 0.08);
+      color: var(--proto-text);
+    }
+
+    .btn-add-label {
+      appearance: none;
+      border: 1px solid var(--proto-border);
+      background: #fff;
+      color: var(--proto-text);
+      font: inherit;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.15rem 0.65rem;
+      border-radius: 999px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      min-height: 24px;
+    }
+
+    .btn-add-label:hover {
+      background: #f0f0f0;
+      border-color: #8a8d90;
+    }
+
+    /* Idea 4 — multiple typeahead with create */
+    .typeahead {
+      position: relative;
+      z-index: 1;
+    }
+
+    .typeahead:focus-within,
+    .typeahead:has(.typeahead-toggle.is-expanded) {
+      z-index: 40;
+    }
+
+    .typeahead-toggle {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem;
+      min-height: 36px;
+      padding: 0.25rem 0.5rem;
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      background: #fff;
+      cursor: text;
+    }
+
+    .typeahead-toggle.is-expanded,
+    .typeahead-toggle:focus-within {
+      border-color: var(--proto-blue);
+      box-shadow: 0 0 0 1px var(--proto-blue);
+    }
+
+    .typeahead-toggle .label-group {
+      display: contents;
+    }
+
+    .typeahead-input {
+      flex: 1;
+      min-width: 120px;
+      border: none;
+      outline: none;
+      font: inherit;
+      font-size: 0.875rem;
+      padding: 0.25rem 0;
+      background: transparent;
+    }
+
+    .typeahead-utilities {
+      display: flex;
+      align-items: center;
+      gap: 0.15rem;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    .typeahead-util-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #6a6e73;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.875rem;
+    }
+
+    .typeahead-util-btn:hover {
+      background: #f0f0f0;
+      color: var(--proto-text);
+    }
+
+    .typeahead-menu {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 4px);
+      z-index: 50;
+      max-height: 220px;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      padding: 0.25rem 0;
+    }
+
+    .typeahead-option {
+      appearance: none;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      font: inherit;
+      font-size: 0.875rem;
+      cursor: pointer;
+      color: var(--proto-text);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .typeahead-option:hover,
+    .typeahead-option.is-focused {
+      background: #e7f1fa;
+    }
+
+    .typeahead-option.is-selected {
+      font-weight: 600;
+    }
+
+    .typeahead-option.is-selected::after {
+      content: "✓";
+      margin-left: auto;
+      color: var(--proto-blue);
+      font-weight: 700;
+    }
+
+    .typeahead-option.is-create {
+      color: var(--proto-blue);
+      font-weight: 500;
+    }
+
+    .typeahead-empty {
+      padding: 0.75rem;
+      font-size: 0.875rem;
+      color: var(--proto-muted);
+    }
+
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 24px;
+      border: none;
+      border-radius: 999px;
+      background: #8a8d90;
+      cursor: pointer;
+      padding: 0;
+      margin-top: 0.35rem;
+      transition: background 0.15s ease;
+    }
+
+    .toggle[aria-checked="true"] {
+      background: var(--proto-blue);
+    }
+
+    .toggle::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 0.15s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .toggle[aria-checked="true"]::after {
+      transform: translateX(16px);
+    }
+
+    .toggle-check {
+      position: absolute;
+      top: 50%;
+      left: 7px;
+      transform: translateY(-50%);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .toggle[aria-checked="true"] .toggle-check { opacity: 1; }
+
+    .field-desc a {
+      color: var(--proto-blue);
+      text-decoration: none;
+    }
+
+    .field-desc a:hover { text-decoration: underline; }
+
+    .live-output {
+      margin-top: 1.25rem;
+      padding-top: 1rem;
+      border-top: 1px dashed var(--proto-border);
+    }
+
+    .live-output h4 {
+      margin: 0 0 0.5rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--proto-muted);
+    }
+
+    .live-output pre {
+      margin: 0;
+      padding: 0.75rem;
+      background: #151515;
+      color: #f0f0f0;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .notes {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .note {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 0.75rem;
+      font-size: 0.8125rem;
+      padding: 0.65rem 0.75rem;
+      background: #fafafa;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+    }
+
+    .note dt {
+      font-weight: 700;
+      color: #3c3f42;
+    }
+
+    .note dd { margin: 0; color: #3c3f42; }
+
+    .hidden { display: none !important; }
+
+    .rating {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      align-items: center;
+    }
+
+    .rating span {
+      font-size: 0.8125rem;
+      color: var(--proto-muted);
+      margin-right: 0.25rem;
+    }
+
+    .rating button {
+      appearance: none;
+      border: 1px solid var(--proto-border);
+      background: #fff;
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.8125rem;
+      cursor: pointer;
+    }
+
+    .rating button[aria-pressed="true"] {
+      background: var(--proto-blue);
+      border-color: var(--proto-blue);
+      color: #fff;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      border: 0;
+    }
+
+    .mock-chrome {
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      overflow: visible;
+      background: #fff;
+    }
+
+    .mock-chrome-bar {
+      background: #f0f0f0;
+      border-bottom: 1px solid var(--proto-border);
+      border-radius: 4px 4px 0 0;
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      color: var(--proto-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .mock-chrome-body {
+      padding: 1.25rem 1.5rem 1.5rem;
+      overflow: visible;
+      position: relative;
+      z-index: 1;
+    }
+
+    .wizard-title {
+      margin: 0 0 0.25rem;
+      font-size: 1.125rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <header class="proto-header">
+    <div>
+      <h1>Image Builder — input patterns</h1>
+      <p>Clickable exploration: chip/label input vs PatternFly Field Builder</p>
+    </div>
+    <span class="proto-badge">Prototype · not production</span>
+  </header>
+
+  <nav class="proto-nav" role="tablist" aria-label="Prototype sections">
+    <button type="button" role="tab" id="tab-overview" aria-selected="true" aria-controls="panel-overview" data-panel="overview">Overview</button>
+    <button type="button" role="tab" id="tab-chips" aria-selected="false" aria-controls="panel-chips" data-panel="chips">A · Chip / label input</button>
+    <button type="button" role="tab" id="tab-fb" aria-selected="false" aria-controls="panel-fb" data-panel="fb">B · Field Builder</button>
+    <button type="button" role="tab" id="tab-alt" aria-selected="false" aria-controls="panel-alt" data-panel="alt">C · Users × Page A ideas</button>
+    <button type="button" role="tab" id="tab-users" aria-selected="false" aria-controls="panel-users" data-panel="users">D · Users step (new)</button>
+    <button type="button" role="tab" id="tab-form" aria-selected="false" aria-controls="panel-form" data-panel="form">Full form playground</button>
+  </nav>
+
+  <main class="proto-main">
+    <!-- OVERVIEW -->
+    <section id="panel-overview" role="tabpanel" aria-labelledby="tab-overview">
+      <div class="panel">
+        <h2>What you’re deciding</h2>
+        <p class="lede">
+          For Image Builder “add multiple values” fields, which interaction pattern should we standardize on —
+          and when should we switch patterns based on the shape of the data?
+        </p>
+
+        <div class="grid-2">
+          <div class="compare-card">
+            <span class="tag tag-current">Pattern A · current</span>
+            <h3>Chip / label input group</h3>
+            <p style="margin:0;font-size:0.875rem;color:#3c3f42;">
+              One text field. User types a value, then presses <strong>Enter</strong> or clicks <strong>Add</strong>.
+              Values become removable chips inside the field.
+            </p>
+            <ul>
+              <li>Best for <strong>single, short, independent values</strong> (kernel args, packages, SSH keys as tokens)</li>
+              <li>Compact — many values in little vertical space</li>
+              <li>Risk: Enter-to-add can conflict with form submit / accessibility expectations</li>
+              <li>Weak for paired fields (name + ID) — chips hide structure</li>
+            </ul>
+          </div>
+          <div class="compare-card">
+            <span class="tag tag-new">Pattern B · PF Field Builder</span>
+            <h3>Field Builder rows</h3>
+            <p style="margin:0;font-size:0.875rem;color:#3c3f42;">
+              Explicit rows with column labels. <strong>Add …</strong> appends a row;
+              each row has a remove control. Matches
+              <a href="https://www.patternfly.org/extensions/component-groups/field-builder#examples" target="_blank" rel="noopener">PatternFly Field Builder</a>.
+            </p>
+            <ul>
+              <li>Best for <strong>structured / multi-field entries</strong> (group name + ID, user + UID, etc.)</li>
+              <li>Clearer editability — values stay as inputs, not tokens</li>
+              <li>Uses more vertical space</li>
+              <li>Overkill for a long list of one-word tokens</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout" style="margin-top:1.25rem;">
+          <strong>Working hypothesis to test in this prototype:</strong>
+          use chips for single-value lists; use Field Builder when each entry has 2+ fields
+          (or when users need to edit a value after adding it without deleting the chip).
+        </div>
+
+        <dl class="notes">
+          <div class="note">
+            <dt>Try next</dt>
+            <dd>Compare Ideas 1–4 on Page A, Page C for Groups-in-Users combos, then Page D for fresh Users-step layouts (cards, accordion, master–detail).</dd>
+          </div>
+          <div class="note">
+            <dt>Capture</dt>
+            <dd>Use the “My take” buttons under each demo — they stay on this page for your session so you can compare later.</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- PATTERN A -->
+    <section id="panel-chips" class="hidden" role="tabpanel" aria-labelledby="tab-chips">
+      <div class="panel">
+        <span class="tag tag-current">Pattern A</span>
+        <h2>Chip / label input</h2>
+        <p class="lede">
+          Single-value lists (e.g. kernel arguments). New ideas stack below — originals stay.
+        </p>
+
+        <!-- Idea 1: original — external Add button -->
+        <div class="idea-block">
+          <p class="idea-label"><span class="tag tag-current">Idea 1</span> External Add button</p>
+          <div class="mock-chrome">
+            <div class="mock-chrome-bar">
+              <span>Image Builder · Kernel</span>
+              <span>Interactive</span>
+            </div>
+            <div class="mock-chrome-body">
+              <div class="field" id="chip-args-field">
+                <label class="field-label" for="chip-args-input">Arguments</label>
+                <div class="chip-group">
+                  <div class="chip-input-shell" id="chip-args-shell">
+                    <input
+                      id="chip-args-input"
+                      type="text"
+                      placeholder="User can keep typing…"
+                      autocomplete="off"
+                      aria-describedby="chip-args-helper"
+                    />
+                  </div>
+                  <button type="button" class="btn" id="chip-args-add" aria-label="Add argument">
+                    Add
+                    <span aria-hidden="true">⊕</span>
+                  </button>
+                </div>
+                <span class="field-helper" id="chip-args-helper">
+                  Enter additional kernel boot parameters. Examples: nomodeset or console=ttyS0.
+                  To add an argument, press Enter or click Add.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Idea 2: + inside textbox -->
+        <div class="idea-block">
+          <p class="idea-label"><span class="tag tag-new">Idea 2</span> + icon inside the textbox</p>
+          <div class="mock-chrome">
+            <div class="mock-chrome-bar">
+              <span>Image Builder · Kernel</span>
+              <span>Interactive</span>
+            </div>
+            <div class="mock-chrome-body">
+              <div class="field">
+                <label class="field-label" for="chip-args-inline-input">Arguments</label>
+                <div class="chip-input-shell chip-input-inline-add" id="chip-args-inline-shell">
+                  <div class="chip-inline-grow" id="chip-args-inline-grow">
+                    <input
+                      id="chip-args-inline-input"
+                      type="text"
+                      placeholder="User can keep typing…"
+                      autocomplete="off"
+                      aria-describedby="chip-args-inline-helper"
+                    />
+                  </div>
+                  <button type="button" class="btn-add-inline" id="chip-args-inline-add" aria-label="Add argument">
+                    <span aria-hidden="true">+</span>
+                  </button>
+                </div>
+                <span class="field-helper" id="chip-args-inline-helper">
+                  Enter additional kernel boot parameters. Examples: nomodeset or console=ttyS0.
+                  To add an argument, press Enter or click +.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Idea 3: PF editable label group with add button -->
+        <div class="idea-block">
+          <p class="idea-label">
+            <span class="tag tag-alt">Idea 3</span>
+            PatternFly editable label group + Add label
+            <a href="https://www.patternfly.org/components/label#editable-label-group-with-add-button" target="_blank" rel="noopener" style="font-weight:500;font-size:0.75rem;">docs</a>
+          </p>
+          <div class="mock-chrome">
+            <div class="mock-chrome-bar">
+              <span>Image Builder · Kernel</span>
+              <span>Interactive</span>
+            </div>
+            <div class="mock-chrome-body">
+              <div class="field">
+                <span class="field-label" id="label-group-args-label">Arguments</span>
+                <div class="label-group-shell">
+                  <div
+                    class="label-group"
+                    id="label-group-args"
+                    role="list"
+                    aria-labelledby="label-group-args-label"
+                  >
+                    <!-- labels + add button injected -->
+                  </div>
+                </div>
+                <span class="field-helper" id="label-group-args-helper">
+                  Click <strong>Add label</strong> to type a new value in place of the button.
+                  Enter to save · Esc to cancel · click a label to edit · × to remove.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Idea 4: multiple typeahead with create option -->
+        <div class="idea-block">
+          <p class="idea-label">
+            <span class="tag tag-turquoise">Idea 4</span>
+            Multiple typeahead with create option
+            <a href="https://www.patternfly.org/components/menus/select/#multiple-typeahead-with-create-option" target="_blank" rel="noopener" style="font-weight:500;font-size:0.75rem;">docs</a>
+          </p>
+          <div class="mock-chrome">
+            <div class="mock-chrome-bar">
+              <span>Image Builder · Kernel</span>
+              <span>Interactive</span>
+            </div>
+            <div class="mock-chrome-body">
+              <div class="field">
+                <label class="field-label" for="typeahead-args-input">Arguments</label>
+                <div class="typeahead" id="typeahead-args">
+                  <div class="typeahead-toggle" id="typeahead-args-toggle">
+                    <div class="label-group" id="typeahead-args-chips" role="list" aria-label="Selected arguments"></div>
+                    <input
+                      id="typeahead-args-input"
+                      class="typeahead-input"
+                      type="text"
+                      placeholder="Search or create arguments…"
+                      autocomplete="off"
+                      aria-describedby="typeahead-args-helper"
+                      aria-autocomplete="list"
+                      aria-controls="typeahead-args-menu"
+                      aria-expanded="false"
+                      role="combobox"
+                    />
+                    <div class="typeahead-utilities">
+                      <button type="button" class="typeahead-util-btn" id="typeahead-args-clear" aria-label="Clear selections" hidden>
+                        <span aria-hidden="true">×</span>
+                      </button>
+                      <button type="button" class="typeahead-util-btn" id="typeahead-args-toggle-btn" aria-label="Toggle menu">
+                        <span aria-hidden="true">▾</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="typeahead-menu hidden" id="typeahead-args-menu" role="listbox" aria-label="Argument options"></div>
+                </div>
+                <span class="field-helper" id="typeahead-args-helper">
+                  Type to filter suggestions. Select from the list, or choose
+                  <strong>Create</strong> when your value isn’t listed. Selected values show as labels.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rating" data-rating="chips">
+          <span>My take on Pattern A:</span>
+          <button type="button" data-value="idea1">Prefer Idea 1 (external Add)</button>
+          <button type="button" data-value="idea2">Prefer Idea 2 (inline +)</button>
+          <button type="button" data-value="idea3">Prefer Idea 3 (label group)</button>
+          <button type="button" data-value="idea4">Prefer Idea 4 (typeahead)</button>
+          <button type="button" data-value="keep-exploring">Keep exploring</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PATTERN B -->
+    <section id="panel-fb" class="hidden" role="tabpanel" aria-labelledby="tab-fb">
+      <div class="panel">
+        <span class="tag tag-new">Pattern B</span>
+        <h2>Field Builder (PatternFly component group)</h2>
+        <p class="lede">
+          Matches your Groups mock and the
+          <a href="https://www.patternfly.org/extensions/component-groups/field-builder#examples" target="_blank" rel="noopener">PF Field Builder</a>
+          pattern: labeled columns, row remove, “Add group” link.
+        </p>
+
+        <div class="mock-chrome">
+          <div class="mock-chrome-bar">
+            <span>Image Builder · Users &amp; groups</span>
+            <span>Interactive</span>
+          </div>
+          <div class="mock-chrome-body">
+            <h3 class="wizard-title">Groups</h3>
+            <p class="field-desc">Define groups to include in the image. Each group needs a name; ID is optional.</p>
+
+            <div id="fb-groups" aria-label="Groups field builder">
+              <table class="fb-table">
+                <thead>
+                  <tr>
+                    <th scope="col" id="fb-groups-col1">Group name</th>
+                    <th scope="col" id="fb-groups-col2">Group ID</th>
+                    <th class="actions" scope="col"><span class="sr-only">Actions</span></th>
+                  </tr>
+                </thead>
+                <tbody id="fb-groups-body"></tbody>
+              </table>
+              <div class="fb-add">
+                <button type="button" class="btn btn-link" id="fb-groups-add">
+                  <span aria-hidden="true">⊕</span> Add group
+                </button>
+              </div>
+              <div class="sr-only" aria-live="polite" id="fb-groups-live"></div>
+            </div>
+
+            <div class="live-output">
+              <h4>Live value (what would be saved)</h4>
+              <pre id="fb-groups-output">[]</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout" style="margin-top:1.25rem;">
+          <strong>Field Builder behaviors in this prototype:</strong>
+          Add appends an empty row · Remove deletes that row · last remaining row can still be cleared
+          (remove disabled when only one empty starter row — toggle via the control below).
+        </div>
+
+        <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.875rem;margin-bottom:0.5rem;">
+          <input type="checkbox" id="fb-allow-zero" />
+          Allow removing the last row (empty state = no rows + Add)
+        </label>
+
+        <div class="rating" data-rating="fb">
+          <span>My take on Pattern B:</span>
+          <button type="button" data-value="paired">Use for paired / multi-field only</button>
+          <button type="button" data-value="default">Make this the default for all multi-add</button>
+          <button type="button" data-value="skip">Not a fit for IB</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PATTERN C: USERS — both patterns combined -->
+    <section id="panel-alt" class="hidden" role="tabpanel" aria-labelledby="tab-alt">
+      <div class="panel">
+        <span class="tag tag-alt">Pattern C · Users</span>
+        <h2>Users — each Page A Groups idea in context</h2>
+        <p class="lede">
+          Same Users Field Builder shell each time. Only the <strong>Groups</strong> column changes,
+          matching Ideas 1–4 from Page A so you can compare density and interaction in a real row.
+        </p>
+
+        <div class="callout">
+          <strong>How to test:</strong>
+          Scroll each idea and try adding/removing groups on both user rows. Outer Add user / Admin / remove stay constant.
+        </div>
+
+        <div id="users-ideas"></div>
+
+        <div class="rating" data-rating="users-combo">
+          <span>Best Groups pattern inside Users:</span>
+          <button type="button" data-value="idea1">Idea 1 · external +</button>
+          <button type="button" data-value="idea2">Idea 2 · inline +</button>
+          <button type="button" data-value="idea3">Idea 3 · label group</button>
+          <button type="button" data-value="idea4">Idea 4 · typeahead + chips</button>
+          <button type="button" data-value="idea4b">Idea 4b · typeahead + count</button>
+          <button type="button" data-value="keep-exploring">Keep exploring</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE D: fresh Users step ideas -->
+    <section id="panel-users" class="hidden" role="tabpanel" aria-labelledby="tab-users">
+      <div class="panel">
+        <span class="tag tag-new">Page D · net-new</span>
+        <h2>Users step — fresh directions</h2>
+        <p class="lede">
+          Ignores the current wide-table design. Goal: configure username, password, SSH key, groups,
+          admin, and multiple users without cramming nested controls into one row.
+        </p>
+
+        <div class="callout">
+          <strong>My recommendation:</strong> start with <em>Idea D1 (user cards)</em> —
+          full form per user, scannable headers, groups as a compact picker. Use D2 if you expect
+          many users and need a dense overview; D3 if users will edit one account at a time.
+        </div>
+
+        <div id="page-d-root"></div>
+
+        <div class="rating" data-rating="page-d">
+          <span>Best direction for Users step:</span>
+          <button type="button" data-value="d1">D1 · Cards</button>
+          <button type="button" data-value="d2">D2 · Accordion list</button>
+          <button type="button" data-value="d3">D3 · Master–detail</button>
+          <button type="button" data-value="keep-exploring">Keep exploring</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FULL FORM -->
+    <section id="panel-form" class="hidden" role="tabpanel" aria-labelledby="tab-form">
+      <div class="panel">
+        <h2>Full form playground</h2>
+        <p class="lede">
+          A mini Image Builder “Users / Kernel” slice with recommended pairing:
+          chips for kernel args, Field Builder for groups. Tweak and export the JSON.
+        </p>
+
+        <div class="mock-chrome">
+          <div class="mock-chrome-bar">
+            <span>Create image · Customizations</span>
+            <span>Playground</span>
+          </div>
+          <div class="mock-chrome-body">
+            <div class="field">
+              <label class="field-label" for="pg-hostname">Hostname</label>
+              <input class="text-input" id="pg-hostname" type="text" value="rhel-image" style="max-width:320px;" />
+            </div>
+
+            <div class="field" style="margin-top:1.5rem;">
+              <h3 class="wizard-title">Kernel arguments</h3>
+              <p class="field-desc">Pattern A — chip / label input</p>
+              <label class="field-label" for="pg-chip-input">Arguments</label>
+              <div class="chip-group">
+                <div class="chip-input-shell" id="pg-chip-shell">
+                  <input id="pg-chip-input" type="text" placeholder="User can keep typing…" autocomplete="off" />
+                </div>
+                <button type="button" class="btn" id="pg-chip-add">Add <span aria-hidden="true">⊕</span></button>
+              </div>
+              <span class="field-helper">Press Enter or click Add.</span>
+            </div>
+
+            <div style="margin-top:1.75rem;">
+              <h3 class="wizard-title">Groups</h3>
+              <p class="field-desc">Pattern B — Field Builder</p>
+              <div id="pg-groups">
+                <table class="fb-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Group name</th>
+                      <th scope="col">Group ID</th>
+                      <th class="actions" scope="col"><span class="sr-only">Actions</span></th>
+                    </tr>
+                  </thead>
+                  <tbody id="pg-groups-body"></tbody>
+                </table>
+                <div class="fb-add">
+                  <button type="button" class="btn btn-link" id="pg-groups-add">
+                    <span aria-hidden="true">⊕</span> Add group
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="live-output">
+              <h4>Combined payload preview</h4>
+              <pre id="pg-output">{}</pre>
+            </div>
+
+            <div style="margin-top:1rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+              <button type="button" class="btn btn-primary" id="pg-copy">Copy JSON</button>
+              <button type="button" class="btn" id="pg-reset">Reset playground</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    /* ---------- Tabs ---------- */
+    const tabs = document.querySelectorAll('.proto-nav [role="tab"]');
+    const panels = {
+      overview: document.getElementById('panel-overview'),
+      chips: document.getElementById('panel-chips'),
+      fb: document.getElementById('panel-fb'),
+      alt: document.getElementById('panel-alt'),
+      users: document.getElementById('panel-users'),
+      form: document.getElementById('panel-form'),
+    };
+
+    const mainEl = document.querySelector('.proto-main');
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const key = tab.dataset.panel;
+        tabs.forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
+        Object.entries(panels).forEach(([k, el]) => {
+          el.classList.toggle('hidden', k !== key);
+        });
+        mainEl.classList.toggle('wide', key === 'alt' || key === 'users');
+      });
+    });
+
+    /* ---------- Ratings (session only) ---------- */
+    document.querySelectorAll('.rating').forEach((group) => {
+      group.querySelectorAll('button').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          group.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+          btn.setAttribute('aria-pressed', 'true');
+        });
+      });
+    });
+
+    /* ---------- Chip input factory ---------- */
+    function createChipField({ shell, input, addBtn, output, initial = [], chipHost }) {
+      let values = [...initial];
+      const host = chipHost || shell;
+
+      function render() {
+        host.querySelectorAll('.chip').forEach((n) => n.remove());
+        values.forEach((value, index) => {
+          const chip = document.createElement('span');
+          chip.className = 'chip';
+          chip.innerHTML = `<span>${escapeHtml(value)}</span>`;
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.setAttribute('aria-label', `Remove ${value}`);
+          remove.textContent = '×';
+          remove.addEventListener('click', () => {
+            values.splice(index, 1);
+            render();
+          });
+          chip.appendChild(remove);
+          host.insertBefore(chip, input);
+        });
+        if (output) output.textContent = JSON.stringify(values, null, 2);
+        onChange && onChange(values);
+      }
+
+      let onChange = null;
+
+      function addCurrent() {
+        const raw = input.value.trim();
+        if (!raw) return;
+        // allow space-separated paste of multiple args
+        const parts = raw.split(/\s+/).filter(Boolean);
+        parts.forEach((p) => {
+          if (!values.includes(p)) values.push(p);
+        });
+        input.value = '';
+        render();
+      }
+
+      addBtn.addEventListener('click', addCurrent);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addCurrent();
+        } else if (e.key === 'Backspace' && !input.value && values.length) {
+          values.pop();
+          render();
+        }
+      });
+
+      render();
+      return {
+        getValues: () => [...values],
+        setValues: (next) => { values = [...next]; render(); },
+        onChange: (fn) => { onChange = fn; },
+      };
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;');
+    }
+
+    /* ---------- Field Builder factory ---------- */
+    function createFieldBuilder({
+      tbody,
+      addBtn,
+      output,
+      columns, // [{ key, placeholder, helper? }]
+      initial,
+      rowLabel = 'Row',
+      liveRegion,
+      allowZeroRowsCheckbox,
+    }) {
+      let rows = initial.map((r) => ({ ...r, id: crypto.randomUUID() }));
+      if (!rows.length) rows = [emptyRow()];
+
+      function emptyRow() {
+        const row = { id: crypto.randomUUID() };
+        columns.forEach((c) => { row[c.key] = ''; });
+        return row;
+      }
+
+      function allowZero() {
+        return allowZeroRowsCheckbox ? allowZeroRowsCheckbox.checked : false;
+      }
+
+      function announce(msg) {
+        if (liveRegion) liveRegion.textContent = msg;
+      }
+
+      function render() {
+        tbody.innerHTML = '';
+        rows.forEach((row, index) => {
+          const tr = document.createElement('tr');
+          columns.forEach((col, colIndex) => {
+            const td = document.createElement('td');
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = row[col.key] || '';
+            input.placeholder = col.placeholder || '';
+            input.setAttribute('aria-label', `${col.label || col.key} ${index + 1}`);
+            if (colIndex === 0) input.setAttribute('data-focus-target', 'true');
+            input.addEventListener('input', () => {
+              row[col.key] = input.value;
+              syncOutput();
+            });
+            td.appendChild(input);
+            if (col.helper && index === rows.length - 1) {
+              const help = document.createElement('span');
+              help.className = 'field-helper';
+              help.textContent = col.helper;
+              td.appendChild(help);
+            }
+            tr.appendChild(td);
+          });
+
+          const actions = document.createElement('td');
+          actions.className = 'actions';
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'btn-icon';
+          remove.setAttribute('aria-label', `Remove ${rowLabel} ${index + 1}`);
+          remove.innerHTML = '<span aria-hidden="true">−</span>';
+          const onlyEmpty = rows.length === 1 && columns.every((c) => !(row[c.key] || '').trim());
+          remove.disabled = rows.length === 1 && !allowZero();
+          remove.addEventListener('click', () => {
+            if (rows.length === 1 && !allowZero()) return;
+            rows.splice(index, 1);
+            if (!rows.length) rows = [emptyRow()];
+            announce(`${rowLabel} ${index + 1} removed.`);
+            render();
+          });
+          // silence unused
+          void onlyEmpty;
+          actions.appendChild(remove);
+          tr.appendChild(actions);
+          tbody.appendChild(tr);
+        });
+        syncOutput();
+      }
+
+      function syncOutput() {
+        if (!output) return;
+        const cleaned = rows
+          .map((r) => {
+            const obj = {};
+            columns.forEach((c) => { obj[c.key] = (r[c.key] || '').trim(); });
+            return obj;
+          })
+          .filter((obj) => Object.values(obj).some(Boolean));
+        output.textContent = JSON.stringify(cleaned, null, 2);
+        onChange && onChange(cleaned);
+      }
+
+      let onChange = null;
+
+      addBtn.addEventListener('click', () => {
+        rows.push(emptyRow());
+        announce(`New ${rowLabel} added. ${rowLabel} ${rows.length}.`);
+        render();
+        const focus = tbody.querySelector('tr:last-child [data-focus-target]');
+        if (focus) focus.focus();
+      });
+
+      if (allowZeroRowsCheckbox) {
+        allowZeroRowsCheckbox.addEventListener('change', render);
+      }
+
+      render();
+      return {
+        getRows: () => rows.map(({ id, ...rest }) => rest),
+        setRows: (next) => {
+          rows = next.length
+            ? next.map((r) => ({ ...emptyRow(), ...r, id: crypto.randomUUID() }))
+            : [emptyRow()];
+          render();
+        },
+        onChange: (fn) => { onChange = fn; },
+        reset: (next) => {
+          rows = (next || initial).map((r) => ({ ...r, id: crypto.randomUUID() }));
+          if (!rows.length) rows = [emptyRow()];
+          render();
+        },
+      };
+    }
+
+    /* ---------- Wire Pattern A ---------- */
+    const chipArgs = createChipField({
+      shell: document.getElementById('chip-args-shell'),
+      input: document.getElementById('chip-args-input'),
+      addBtn: document.getElementById('chip-args-add'),
+      output: null,
+      initial: ['nomodeset'],
+    });
+
+    createChipField({
+      shell: document.getElementById('chip-args-inline-shell'),
+      chipHost: document.getElementById('chip-args-inline-grow'),
+      input: document.getElementById('chip-args-inline-input'),
+      addBtn: document.getElementById('chip-args-inline-add'),
+      output: null,
+      initial: ['nomodeset', 'console=ttyS0', 'rd.shell'],
+    });
+
+    /* Idea 3 — PF editable label group with add button (no category text) */
+    function createEditableLabelGroup({ container, output, initial = [] }) {
+      let labels = initial.map((name) => ({
+        id: crypto.randomUUID(),
+        name,
+      }));
+      let editingId = null;
+      let editDraft = '';
+      let isAdding = false;
+      let addDraft = '';
+
+      function syncOutput() {
+        if (output) {
+          output.textContent = JSON.stringify(
+            labels.map((l) => l.name).filter(Boolean),
+            null,
+            2
+          );
+        }
+      }
+
+      function startEdit(id) {
+        // Don't edit an existing label while the add input is open
+        if (isAdding) commitAdd(addDraft);
+        const label = labels.find((l) => l.id === id);
+        if (!label) return;
+        editingId = id;
+        editDraft = label.name;
+        render();
+        const input = container.querySelector(`[data-edit-id="${id}"]`);
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      }
+
+      function completeEdit(id, nextText) {
+        const trimmed = nextText.trim();
+        const label = labels.find((l) => l.id === id);
+        if (!label) return;
+        if (trimmed) label.name = trimmed;
+        editingId = null;
+        editDraft = '';
+        render();
+      }
+
+      function cancelEdit() {
+        editingId = null;
+        editDraft = '';
+        render();
+      }
+
+      function startAdd() {
+        if (editingId) {
+          const current = labels.find((l) => l.id === editingId);
+          if (current) completeEdit(editingId, editDraft);
+        }
+        isAdding = true;
+        addDraft = '';
+        render();
+        const input = container.querySelector('[data-add-input]');
+        if (input) input.focus();
+      }
+
+      function commitAdd(nextText) {
+        const trimmed = nextText.trim();
+        isAdding = false;
+        addDraft = '';
+        if (trimmed && !labels.some((l) => l.name === trimmed)) {
+          labels.push({ id: crypto.randomUUID(), name: trimmed });
+        }
+        render();
+      }
+
+      function cancelAdd() {
+        isAdding = false;
+        addDraft = '';
+        render();
+      }
+
+      function render() {
+        container.innerHTML = '';
+
+        labels.forEach((label) => {
+          const item = document.createElement('span');
+          item.className = 'pf-label' + (editingId === label.id ? ' is-editing' : '');
+          item.setAttribute('role', 'listitem');
+
+          if (editingId === label.id) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'pf-label-input';
+            input.value = editDraft;
+            input.setAttribute('data-edit-id', label.id);
+            input.setAttribute('aria-label', `Edit label ${label.name}`);
+            input.addEventListener('input', () => {
+              editDraft = input.value;
+            });
+            input.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                completeEdit(label.id, input.value);
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                cancelEdit();
+              }
+            });
+            input.addEventListener('blur', () => {
+              if (editingId === label.id) completeEdit(label.id, input.value);
+            });
+            item.appendChild(input);
+          } else {
+            const textBtn = document.createElement('button');
+            textBtn.type = 'button';
+            textBtn.className = 'pf-label-text';
+            textBtn.textContent = label.name;
+            textBtn.setAttribute('aria-label', `Editable label ${label.name}. Activate to edit.`);
+            textBtn.addEventListener('click', () => startEdit(label.id));
+            item.appendChild(textBtn);
+
+            const close = document.createElement('button');
+            close.type = 'button';
+            close.className = 'pf-label-close';
+            close.setAttribute('aria-label', `Remove ${label.name}`);
+            close.innerHTML = '<span aria-hidden="true">×</span>';
+            close.addEventListener('click', () => {
+              labels = labels.filter((l) => l.id !== label.id);
+              if (editingId === label.id) {
+                editingId = null;
+                editDraft = '';
+              }
+              render();
+            });
+            item.appendChild(close);
+          }
+
+          container.appendChild(item);
+        });
+
+        // Add control stays at the end — button OR in-place input
+        if (isAdding) {
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.className = 'pf-label-input';
+          input.value = addDraft;
+          input.placeholder = 'New label';
+          input.setAttribute('data-add-input', '');
+          input.setAttribute('aria-label', 'New label');
+          input.addEventListener('input', () => {
+            addDraft = input.value;
+          });
+          input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              commitAdd(input.value);
+            } else if (e.key === 'Escape') {
+              e.preventDefault();
+              cancelAdd();
+            }
+          });
+          input.addEventListener('blur', () => {
+            if (isAdding) commitAdd(input.value);
+          });
+          container.appendChild(input);
+        } else {
+          const addBtn = document.createElement('button');
+          addBtn.type = 'button';
+          addBtn.className = 'btn-add-label';
+          addBtn.innerHTML = '<span aria-hidden="true">+</span> Add label';
+          addBtn.addEventListener('click', startAdd);
+          container.appendChild(addBtn);
+        }
+
+        syncOutput();
+      }
+
+      render();
+    }
+
+    createEditableLabelGroup({
+      container: document.getElementById('label-group-args'),
+      output: null,
+      initial: ['nomodeset', 'console=ttyS0', 'rd.shell'],
+    });
+
+    /* Idea 4 — multiple typeahead with create option */
+    function createMultiTypeahead({
+      root,
+      toggle,
+      chipsEl,
+      input,
+      menu,
+      clearBtn,
+      toggleBtn,
+      output,
+      initialOptions,
+      initialSelected = [],
+    }) {
+      let options = [...initialOptions];
+      let selected = [...initialSelected];
+      let isOpen = false;
+      let filter = '';
+      let focusedIndex = -1;
+      const CREATE = '__create__';
+
+      function filteredOptions() {
+        const q = filter.trim().toLowerCase();
+        let list = q
+          ? options.filter((o) => o.toLowerCase().includes(q))
+          : [...options];
+
+        const exact = options.some((o) => o.toLowerCase() === q);
+        if (q && !exact) {
+          list = [...list, CREATE];
+        }
+        return list;
+      }
+
+      function syncOutput() {
+        if (output) output.textContent = JSON.stringify(selected, null, 2);
+        clearBtn.hidden = selected.length === 0;
+      }
+
+      function setOpen(next) {
+        isOpen = next;
+        menu.classList.toggle('hidden', !isOpen);
+        toggle.classList.toggle('is-expanded', isOpen);
+        input.setAttribute('aria-expanded', String(isOpen));
+        if (!isOpen) focusedIndex = -1;
+        if (isOpen) renderMenu();
+      }
+
+      function renderChips() {
+        chipsEl.innerHTML = '';
+        selected.forEach((value) => {
+          const chip = document.createElement('span');
+          chip.className = 'pf-label';
+          chip.setAttribute('role', 'listitem');
+          const text = document.createElement('span');
+          text.textContent = value;
+          const close = document.createElement('button');
+          close.type = 'button';
+          close.className = 'pf-label-close';
+          close.setAttribute('aria-label', `Remove ${value}`);
+          close.innerHTML = '<span aria-hidden="true">×</span>';
+          close.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selected = selected.filter((v) => v !== value);
+            render();
+            input.focus();
+          });
+          chip.appendChild(text);
+          chip.appendChild(close);
+          chipsEl.appendChild(chip);
+        });
+      }
+
+      function renderMenu() {
+        const list = filteredOptions();
+        menu.innerHTML = '';
+
+        if (!list.length) {
+          const empty = document.createElement('div');
+          empty.className = 'typeahead-empty';
+          empty.textContent = 'No results found';
+          menu.appendChild(empty);
+          return;
+        }
+
+        list.forEach((value, index) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'typeahead-option';
+          btn.setAttribute('role', 'option');
+          btn.id = `typeahead-opt-${index}`;
+
+          if (value === CREATE) {
+            btn.classList.add('is-create');
+            btn.textContent = `Create "${filter.trim()}"`;
+            btn.dataset.value = CREATE;
+          } else {
+            btn.textContent = value;
+            btn.dataset.value = value;
+            if (selected.includes(value)) btn.classList.add('is-selected');
+          }
+
+          if (index === focusedIndex) btn.classList.add('is-focused');
+
+          // Use mousedown so selection happens before click; stopPropagation so
+          // rebuilding the menu doesn't look like an "outside" click and close it.
+          btn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            selectValue(value);
+          });
+          menu.appendChild(btn);
+        });
+      }
+
+      function selectValue(value) {
+        if (value === CREATE) {
+          const created = filter.trim();
+          if (!created) return;
+          if (!options.includes(created)) options.push(created);
+          if (!selected.includes(created)) selected.push(created);
+          filter = '';
+          input.value = '';
+        } else if (selected.includes(value)) {
+          selected = selected.filter((v) => v !== value);
+        } else {
+          selected.push(value);
+          // Keep filter so the menu list stays stable while multi-selecting
+        }
+        // Keep menu open for multi-select
+        isOpen = true;
+        focusedIndex = -1;
+        renderChips();
+        renderMenu();
+        syncOutput();
+        menu.classList.remove('hidden');
+        toggle.classList.add('is-expanded');
+        input.setAttribute('aria-expanded', 'true');
+        input.focus();
+      }
+
+      function render() {
+        renderChips();
+        if (isOpen) renderMenu();
+        syncOutput();
+      }
+
+      toggle.addEventListener('click', (e) => {
+        if (e.target.closest('button')) return;
+        input.focus();
+        setOpen(true);
+      });
+
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setOpen(!isOpen);
+        input.focus();
+      });
+
+      clearBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selected = [];
+        filter = '';
+        input.value = '';
+        render();
+        setOpen(false);
+        input.focus();
+      });
+
+      input.addEventListener('focus', () => setOpen(true));
+      input.addEventListener('input', () => {
+        filter = input.value;
+        focusedIndex = -1;
+        setOpen(true);
+        renderMenu();
+      });
+
+      input.addEventListener('keydown', (e) => {
+        const list = filteredOptions();
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (!isOpen) setOpen(true);
+          focusedIndex = focusedIndex < list.length - 1 ? focusedIndex + 1 : 0;
+          renderMenu();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (!isOpen) setOpen(true);
+          focusedIndex = focusedIndex > 0 ? focusedIndex - 1 : list.length - 1;
+          renderMenu();
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (!isOpen) {
+            setOpen(true);
+            return;
+          }
+          if (focusedIndex >= 0 && list[focusedIndex] != null) {
+            selectValue(list[focusedIndex]);
+          } else if (filter.trim()) {
+            const exact = options.find((o) => o.toLowerCase() === filter.trim().toLowerCase());
+            selectValue(exact || CREATE);
+          }
+        } else if (e.key === 'Escape') {
+          setOpen(false);
+        } else if (e.key === 'Backspace' && !input.value && selected.length) {
+          selected.pop();
+          render();
+        }
+      });
+
+      document.addEventListener('mousedown', (e) => {
+        if (!root.contains(e.target)) setOpen(false);
+      });
+
+      render();
+    }
+
+    createMultiTypeahead({
+      root: document.getElementById('typeahead-args'),
+      toggle: document.getElementById('typeahead-args-toggle'),
+      chipsEl: document.getElementById('typeahead-args-chips'),
+      input: document.getElementById('typeahead-args-input'),
+      menu: document.getElementById('typeahead-args-menu'),
+      clearBtn: document.getElementById('typeahead-args-clear'),
+      toggleBtn: document.getElementById('typeahead-args-toggle-btn'),
+      output: null,
+      initialSelected: ['nomodeset'],
+      initialOptions: [
+        'nomodeset',
+        'quiet',
+        'splash',
+        'console=ttyS0',
+        'console=tty0',
+        'rd.shell',
+        'rd.break',
+        'systemd.unit=multi-user.target',
+        'enforcing=0',
+        'selinux=0',
+        'intel_iommu=on',
+        'amd_iommu=on',
+        'ipv6.disable=1',
+        'net.ifnames=0',
+        'biosdevname=0',
+      ],
+    });
+
+    /* ---------- Wire Pattern B ---------- */
+    const fbGroups = createFieldBuilder({
+      tbody: document.getElementById('fb-groups-body'),
+      addBtn: document.getElementById('fb-groups-add'),
+      output: document.getElementById('fb-groups-output'),
+      liveRegion: document.getElementById('fb-groups-live'),
+      allowZeroRowsCheckbox: document.getElementById('fb-allow-zero'),
+      rowLabel: 'Group',
+      columns: [
+        { key: 'name', label: 'Group name', placeholder: 'Admingroup', helper: 'Helper text' },
+        { key: 'id', label: 'Group ID', placeholder: '019274000', helper: 'Helper text' },
+      ],
+      initial: [
+        { name: 'Admingroup', id: '019274000' },
+        { name: 'Admingroup', id: '019274000' },
+      ],
+    });
+
+    /* ---------- Wire Pattern C: Users × Page A Groups ideas ---------- */
+    const USER_GROUP_OPTIONS = [
+      'wheel',
+      'group_a',
+      'admins',
+      'developers',
+      'docker',
+      'kvm',
+      'libvirt',
+      'systemd-journal',
+      'users',
+      'nobody',
+    ];
+
+    const usersSeed = [
+      {
+        username: '',
+        password: '',
+        sshKey: '',
+        groups: ['wheel', 'group_a'],
+        admin: true,
+      },
+      {
+        username: '',
+        password: '',
+        sshKey: '',
+        groups: [],
+        admin: false,
+      },
+    ];
+
+    function createUsersBuilder({
+      tbody,
+      addBtn,
+      output,
+      liveRegion,
+      initial,
+      groupsVariant = 'external',
+      groupOptions = USER_GROUP_OPTIONS,
+    }) {
+      let rows = initial.map((r) => ({
+        id: crypto.randomUUID(),
+        username: r.username || '',
+        password: r.password || '',
+        sshKey: r.sshKey || '',
+        groups: [...(r.groups || [])],
+        admin: Boolean(r.admin),
+        // per-row UI state for label-group / typeahead
+        _adding: false,
+        _addDraft: '',
+        _editingGroupId: null,
+        _editDraft: '',
+        _groupIds: (r.groups || []).map((name) => ({ id: crypto.randomUUID(), name })),
+        _typeaheadOpen: false,
+        _typeaheadFilter: '',
+        _typeaheadFocus: -1,
+      }));
+
+      // Keep groups array and _groupIds in sync for label-group variant
+      rows.forEach((row) => {
+        row.groups = row._groupIds.map((g) => g.name);
+      });
+
+      if (!rows.length) {
+        rows = [{
+          id: crypto.randomUUID(),
+          username: '',
+          password: '',
+          sshKey: '',
+          groups: [],
+          admin: false,
+          _adding: false,
+          _addDraft: '',
+          _editingGroupId: null,
+          _editDraft: '',
+          _groupIds: [],
+          _typeaheadOpen: false,
+          _typeaheadFilter: '',
+          _typeaheadFocus: -1,
+        }];
+      }
+
+      // Shared option pool for typeahead create (mutates as users create)
+      let sharedOptions = [...groupOptions];
+
+      function announce(msg) {
+        if (liveRegion) liveRegion.textContent = msg;
+      }
+
+      function payload() {
+        return rows
+          .map((r) => ({
+            username: r.username.trim(),
+            password: r.password ? '••••••••' : '',
+            sshKey: r.sshKey.trim() ? '[ssh key set]' : '',
+            groups: groupsVariant === 'labelGroup'
+              ? r._groupIds.map((g) => g.name).filter(Boolean)
+              : [...r.groups],
+            admin: r.admin,
+          }))
+          .filter((r) => r.username || r.password || r.sshKey || r.groups.length || r.admin);
+      }
+
+      function syncOutput() {
+        if (output) output.textContent = JSON.stringify(payload(), null, 2);
+      }
+
+      function syncGroupsFromIds(row) {
+        row.groups = row._groupIds.map((g) => g.name);
+      }
+
+      function helperText() {
+        switch (groupsVariant) {
+          case 'inline':
+            return 'To add a group, press Enter or click + inside the field.';
+          case 'labelGroup':
+            return 'Click Add label to type in place · Enter to save · click a label to edit.';
+          case 'typeahead':
+            return 'Type to search groups, select one, or Create a new group name.';
+          case 'typeaheadCount':
+            return 'Field stays one line. Count badge shows how many are selected; open the menu to review, toggle, or create.';
+          default:
+            return 'To add a group, press Enter or click the add icon.';
+        }
+      }
+
+      function renderChipGroupsCell(row, index, showHelper) {
+        const wrap = document.createElement('div');
+        const inline = groupsVariant === 'inline';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.autocomplete = 'off';
+        input.setAttribute('aria-label', `Groups for user ${index + 1}`);
+
+        let chipHost;
+        let shell;
+
+        if (inline) {
+          shell = document.createElement('div');
+          shell.className = 'chip-input-shell chip-input-inline-add';
+          chipHost = document.createElement('div');
+          chipHost.className = 'chip-inline-grow';
+          chipHost.appendChild(input);
+          shell.appendChild(chipHost);
+        } else {
+          const group = document.createElement('div');
+          group.className = 'chip-group-compact';
+          shell = document.createElement('div');
+          shell.className = 'chip-input-shell';
+          chipHost = shell;
+          shell.appendChild(input);
+          group.appendChild(shell);
+          wrap.appendChild(group);
+        }
+
+        function renderChips() {
+          chipHost.querySelectorAll('.chip').forEach((n) => n.remove());
+          row.groups.forEach((value, gIndex) => {
+            const chip = document.createElement('span');
+            chip.className = 'chip';
+            chip.innerHTML = `<span>${escapeHtml(value)}</span>`;
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.setAttribute('aria-label', `Remove group ${value}`);
+            remove.textContent = '×';
+            remove.addEventListener('click', () => {
+              row.groups.splice(gIndex, 1);
+              renderChips();
+              syncOutput();
+            });
+            chip.appendChild(remove);
+            chipHost.insertBefore(chip, input);
+          });
+        }
+
+        function addGroup() {
+          const raw = input.value.trim();
+          if (!raw) return;
+          raw.split(/\s+/).filter(Boolean).forEach((p) => {
+            if (!row.groups.includes(p)) row.groups.push(p);
+          });
+          input.value = '';
+          renderChips();
+          syncOutput();
+        }
+
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            addGroup();
+          } else if (e.key === 'Backspace' && !input.value && row.groups.length) {
+            row.groups.pop();
+            renderChips();
+            syncOutput();
+          }
+        });
+
+        const add = document.createElement('button');
+        add.type = 'button';
+        add.setAttribute('aria-label', `Add group for user ${index + 1}`);
+        add.innerHTML = '<span aria-hidden="true">+</span>';
+        add.addEventListener('click', addGroup);
+
+        if (inline) {
+          add.className = 'btn-add-inline';
+          shell.appendChild(add);
+          wrap.appendChild(shell);
+        } else {
+          add.className = 'btn-add-square';
+          wrap.querySelector('.chip-group-compact').appendChild(add);
+        }
+
+        if (showHelper) {
+          const help = document.createElement('span');
+          help.className = 'field-helper';
+          help.textContent = helperText();
+          wrap.appendChild(help);
+        }
+
+        renderChips();
+        return wrap;
+      }
+
+      function renderLabelGroupCell(row, index, showHelper) {
+        const wrap = document.createElement('div');
+        const shell = document.createElement('div');
+        shell.className = 'label-group-shell';
+        const group = document.createElement('div');
+        group.className = 'label-group';
+        group.setAttribute('role', 'list');
+        group.setAttribute('aria-label', `Groups for user ${index + 1}`);
+
+        row._groupIds.forEach((label) => {
+          const item = document.createElement('span');
+          item.className = 'pf-label' + (row._editingGroupId === label.id ? ' is-editing' : '');
+          item.setAttribute('role', 'listitem');
+
+          if (row._editingGroupId === label.id) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'pf-label-input';
+            input.value = row._editDraft;
+            input.addEventListener('input', () => { row._editDraft = input.value; });
+            input.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                const trimmed = input.value.trim();
+                if (trimmed) label.name = trimmed;
+                row._editingGroupId = null;
+                row._editDraft = '';
+                syncGroupsFromIds(row);
+                render();
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                row._editingGroupId = null;
+                row._editDraft = '';
+                render();
+              }
+            });
+            input.addEventListener('blur', () => {
+              if (row._editingGroupId !== label.id) return;
+              const trimmed = input.value.trim();
+              if (trimmed) label.name = trimmed;
+              row._editingGroupId = null;
+              row._editDraft = '';
+              syncGroupsFromIds(row);
+              render();
+            });
+            item.appendChild(input);
+            requestAnimationFrame(() => { input.focus(); input.select(); });
+          } else {
+            const textBtn = document.createElement('button');
+            textBtn.type = 'button';
+            textBtn.className = 'pf-label-text';
+            textBtn.textContent = label.name;
+            textBtn.addEventListener('click', () => {
+              row._adding = false;
+              row._addDraft = '';
+              row._editingGroupId = label.id;
+              row._editDraft = label.name;
+              render();
+            });
+            const close = document.createElement('button');
+            close.type = 'button';
+            close.className = 'pf-label-close';
+            close.setAttribute('aria-label', `Remove ${label.name}`);
+            close.innerHTML = '<span aria-hidden="true">×</span>';
+            close.addEventListener('click', () => {
+              row._groupIds = row._groupIds.filter((g) => g.id !== label.id);
+              syncGroupsFromIds(row);
+              render();
+            });
+            item.appendChild(textBtn);
+            item.appendChild(close);
+          }
+          group.appendChild(item);
+        });
+
+        if (row._adding) {
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.className = 'pf-label-input';
+          input.placeholder = 'New group';
+          input.value = row._addDraft;
+          input.setAttribute('aria-label', `New group for user ${index + 1}`);
+          input.addEventListener('input', () => { row._addDraft = input.value; });
+          input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              const trimmed = input.value.trim();
+              row._adding = false;
+              row._addDraft = '';
+              if (trimmed && !row._groupIds.some((g) => g.name === trimmed)) {
+                row._groupIds.push({ id: crypto.randomUUID(), name: trimmed });
+              }
+              syncGroupsFromIds(row);
+              render();
+            } else if (e.key === 'Escape') {
+              e.preventDefault();
+              row._adding = false;
+              row._addDraft = '';
+              render();
+            }
+          });
+          input.addEventListener('blur', () => {
+            if (!row._adding) return;
+            const trimmed = input.value.trim();
+            row._adding = false;
+            row._addDraft = '';
+            if (trimmed && !row._groupIds.some((g) => g.name === trimmed)) {
+              row._groupIds.push({ id: crypto.randomUUID(), name: trimmed });
+            }
+            syncGroupsFromIds(row);
+            render();
+          });
+          group.appendChild(input);
+          requestAnimationFrame(() => input.focus());
+        } else {
+          const addBtnEl = document.createElement('button');
+          addBtnEl.type = 'button';
+          addBtnEl.className = 'btn-add-label';
+          addBtnEl.innerHTML = '<span aria-hidden="true">+</span> Add label';
+          addBtnEl.addEventListener('click', () => {
+            row._editingGroupId = null;
+            row._editDraft = '';
+            row._adding = true;
+            row._addDraft = '';
+            render();
+          });
+          group.appendChild(addBtnEl);
+        }
+
+        shell.appendChild(group);
+        wrap.appendChild(shell);
+
+        if (showHelper) {
+          const help = document.createElement('span');
+          help.className = 'field-helper';
+          help.textContent = helperText();
+          wrap.appendChild(help);
+        }
+        return wrap;
+      }
+
+      function renderTypeaheadCell(row, index, showHelper, countOnly = false) {
+        const CREATE = '__create__';
+        const wrap = document.createElement('div');
+        const root = document.createElement('div');
+        root.className = 'typeahead';
+
+        const toggle = document.createElement('div');
+        toggle.className = 'typeahead-toggle'
+          + (row._typeaheadOpen ? ' is-expanded' : '')
+          + (countOnly ? ' is-count-only' : '');
+
+        const chipsEl = document.createElement('div');
+        chipsEl.className = 'label-group';
+        chipsEl.setAttribute('role', 'list');
+
+        if (!countOnly) {
+          row.groups.forEach((value) => {
+            const chip = document.createElement('span');
+            chip.className = 'pf-label';
+            chip.setAttribute('role', 'listitem');
+            const text = document.createElement('span');
+            text.textContent = value;
+            const close = document.createElement('button');
+            close.type = 'button';
+            close.className = 'pf-label-close';
+            close.setAttribute('aria-label', `Remove ${value}`);
+            close.innerHTML = '<span aria-hidden="true">×</span>';
+            close.addEventListener('click', (e) => {
+              e.stopPropagation();
+              row.groups = row.groups.filter((v) => v !== value);
+              syncOutput();
+              render();
+            });
+            chip.appendChild(text);
+            chip.appendChild(close);
+            chipsEl.appendChild(chip);
+          });
+        }
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'typeahead-input';
+        input.placeholder = countOnly
+          ? (row.groups.length ? 'Add or search groups…' : 'Search or create…')
+          : 'Search or create…';
+        input.autocomplete = 'off';
+        input.value = row._typeaheadFilter;
+        input.setAttribute('aria-label', `Groups typeahead for user ${index + 1}`);
+        input.setAttribute('role', 'combobox');
+        input.setAttribute('aria-expanded', String(row._typeaheadOpen));
+
+        const utilities = document.createElement('div');
+        utilities.className = 'typeahead-utilities';
+
+        if (countOnly && row.groups.length) {
+          const badge = document.createElement('span');
+          badge.className = 'typeahead-count-badge';
+          badge.textContent = String(row.groups.length);
+          badge.title = row.groups.join(', ');
+          badge.setAttribute('aria-label', `${row.groups.length} groups selected`);
+          utilities.appendChild(badge);
+        }
+
+        const clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.className = 'typeahead-util-btn';
+        clearBtn.setAttribute('aria-label', 'Clear groups');
+        clearBtn.innerHTML = '<span aria-hidden="true">×</span>';
+        clearBtn.hidden = row.groups.length === 0;
+        clearBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          row.groups = [];
+          row._typeaheadFilter = '';
+          row._typeaheadOpen = false;
+          render();
+        });
+        const caretBtn = document.createElement('button');
+        caretBtn.type = 'button';
+        caretBtn.className = 'typeahead-util-btn';
+        caretBtn.setAttribute('aria-label', 'Toggle group menu');
+        caretBtn.innerHTML = '<span aria-hidden="true">▾</span>';
+        caretBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          row._typeaheadOpen = !row._typeaheadOpen;
+          render();
+          const next = tbody.querySelector(`[data-typeahead-input="${row.id}"]`);
+          if (next) next.focus();
+        });
+        utilities.appendChild(clearBtn);
+        utilities.appendChild(caretBtn);
+
+        if (!countOnly) toggle.appendChild(chipsEl);
+        toggle.appendChild(input);
+        toggle.appendChild(utilities);
+        input.setAttribute('data-typeahead-input', row.id);
+
+        const menu = document.createElement('div');
+        menu.className = 'typeahead-menu' + (row._typeaheadOpen ? '' : ' hidden');
+        menu.setAttribute('role', 'listbox');
+
+        function optionList() {
+          const q = row._typeaheadFilter.trim().toLowerCase();
+          let list = q
+            ? sharedOptions.filter((o) => o.toLowerCase().includes(q))
+            : [...sharedOptions];
+          const exact = sharedOptions.some((o) => o.toLowerCase() === q);
+          if (q && !exact) list = [...list, CREATE];
+          return list;
+        }
+
+        function selectValue(value) {
+          if (value === CREATE) {
+            const created = row._typeaheadFilter.trim();
+            if (!created) return;
+            if (!sharedOptions.includes(created)) sharedOptions.push(created);
+            if (!row.groups.includes(created)) row.groups.push(created);
+            row._typeaheadFilter = '';
+          } else if (row.groups.includes(value)) {
+            row.groups = row.groups.filter((v) => v !== value);
+          } else {
+            row.groups.push(value);
+            row._typeaheadFilter = '';
+          }
+          row._typeaheadFocus = -1;
+          row._typeaheadOpen = true;
+          render();
+          const next = tbody.querySelector(`[data-typeahead-input="${row.id}"]`);
+          if (next) next.focus();
+        }
+
+        if (row._typeaheadOpen) {
+          const list = optionList();
+          if (!list.length) {
+            const empty = document.createElement('div');
+            empty.className = 'typeahead-empty';
+            empty.textContent = 'No results found';
+            menu.appendChild(empty);
+          } else {
+            list.forEach((value, optIndex) => {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = 'typeahead-option';
+              btn.setAttribute('role', 'option');
+              if (value === CREATE) {
+                btn.classList.add('is-create');
+                btn.textContent = `Create "${row._typeaheadFilter.trim()}"`;
+              } else {
+                btn.textContent = value;
+                if (row.groups.includes(value)) btn.classList.add('is-selected');
+              }
+              if (optIndex === row._typeaheadFocus) btn.classList.add('is-focused');
+              btn.addEventListener('mousedown', (e) => e.preventDefault());
+              btn.addEventListener('click', () => selectValue(value));
+              menu.appendChild(btn);
+            });
+          }
+        }
+
+        toggle.addEventListener('click', (e) => {
+          if (e.target.closest('button')) return;
+          row._typeaheadOpen = true;
+          render();
+          const next = tbody.querySelector(`[data-typeahead-input="${row.id}"]`);
+          if (next) next.focus();
+        });
+
+        input.addEventListener('focus', () => {
+          if (!row._typeaheadOpen) {
+            row._typeaheadOpen = true;
+            render();
+            const next = tbody.querySelector(`[data-typeahead-input="${row.id}"]`);
+            if (next) {
+              next.focus();
+              // restore caret at end
+              const val = next.value;
+              next.value = '';
+              next.value = val;
+            }
+          }
+        });
+
+        input.addEventListener('input', () => {
+          row._typeaheadFilter = input.value;
+          row._typeaheadFocus = -1;
+          row._typeaheadOpen = true;
+          render();
+          const next = tbody.querySelector(`[data-typeahead-input="${row.id}"]`);
+          if (next) {
+            next.focus();
+            next.setSelectionRange(next.value.length, next.value.length);
+          }
+        });
+
+        input.addEventListener('keydown', (e) => {
+          const list = optionList();
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            row._typeaheadOpen = true;
+            row._typeaheadFocus = row._typeaheadFocus < list.length - 1 ? row._typeaheadFocus + 1 : 0;
+            render();
+            const next = tbody.querySelector(`[data-typeahead-input="${row.id}"]`);
+            if (next) next.focus();
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            row._typeaheadOpen = true;
+            row._typeaheadFocus = row._typeaheadFocus > 0 ? row._typeaheadFocus - 1 : list.length - 1;
+            render();
+            const next = tbody.querySelector(`[data-typeahead-input="${row.id}"]`);
+            if (next) next.focus();
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (row._typeaheadFocus >= 0 && list[row._typeaheadFocus] != null) {
+              selectValue(list[row._typeaheadFocus]);
+            } else if (row._typeaheadFilter.trim()) {
+              const exact = sharedOptions.find(
+                (o) => o.toLowerCase() === row._typeaheadFilter.trim().toLowerCase()
+              );
+              selectValue(exact || CREATE);
+            }
+          } else if (e.key === 'Escape') {
+            row._typeaheadOpen = false;
+            render();
+          } else if (e.key === 'Backspace' && !input.value && row.groups.length) {
+            row.groups.pop();
+            render();
+            const next = tbody.querySelector(`[data-typeahead-input="${row.id}"]`);
+            if (next) next.focus();
+          }
+        });
+
+        root.dataset.typeaheadRoot = row.id;
+        root.appendChild(toggle);
+        root.appendChild(menu);
+        wrap.appendChild(root);
+
+        if (countOnly && row.groups.length) {
+          const summary = document.createElement('div');
+          summary.className = 'typeahead-summary';
+          const names = row.groups.join(', ');
+          summary.innerHTML = `<span>${escapeHtml(names)}</span> · `;
+          const clearLink = document.createElement('button');
+          clearLink.type = 'button';
+          clearLink.textContent = 'Clear all';
+          clearLink.addEventListener('click', (e) => {
+            e.stopPropagation();
+            row.groups = [];
+            row._typeaheadFilter = '';
+            row._typeaheadOpen = false;
+            render();
+          });
+          summary.appendChild(clearLink);
+          wrap.appendChild(summary);
+        }
+
+        if (showHelper) {
+          const help = document.createElement('span');
+          help.className = 'field-helper';
+          help.textContent = helperText();
+          wrap.appendChild(help);
+        }
+        return wrap;
+      }
+
+      function renderGroupsCell(row, index, showHelper) {
+        if (groupsVariant === 'labelGroup') return renderLabelGroupCell(row, index, showHelper);
+        if (groupsVariant === 'typeahead' || groupsVariant === 'typeaheadCount') {
+          return renderTypeaheadCell(row, index, showHelper, groupsVariant === 'typeaheadCount');
+        }
+        return renderChipGroupsCell(row, index, showHelper);
+      }
+
+      function render() {
+        tbody.innerHTML = '';
+        rows.forEach((row, index) => {
+          const tr = document.createElement('tr');
+
+          const tdUser = document.createElement('td');
+          const userInput = document.createElement('input');
+          userInput.type = 'text';
+          userInput.placeholder = 'Set username';
+          userInput.value = row.username;
+          userInput.setAttribute('aria-label', `Username ${index + 1}`);
+          userInput.addEventListener('input', () => {
+            row.username = userInput.value;
+            syncOutput();
+          });
+          tdUser.appendChild(userInput);
+          tr.appendChild(tdUser);
+
+          const tdPass = document.createElement('td');
+          const passInput = document.createElement('input');
+          passInput.type = 'password';
+          passInput.placeholder = 'Set password';
+          passInput.value = row.password;
+          passInput.setAttribute('aria-label', `Password ${index + 1}`);
+          passInput.addEventListener('input', () => {
+            row.password = passInput.value;
+            syncOutput();
+          });
+          tdPass.appendChild(passInput);
+          tr.appendChild(tdPass);
+
+          const tdSsh = document.createElement('td');
+          const sshInput = document.createElement('input');
+          sshInput.type = 'text';
+          sshInput.placeholder = 'Paste SSH key here';
+          sshInput.value = row.sshKey;
+          sshInput.setAttribute('aria-label', `SSH key ${index + 1}`);
+          sshInput.addEventListener('input', () => {
+            row.sshKey = sshInput.value;
+            syncOutput();
+          });
+          tdSsh.appendChild(sshInput);
+          tr.appendChild(tdSsh);
+
+          const tdGroups = document.createElement('td');
+          const showHelper = index === rows.length - 1;
+          tdGroups.appendChild(renderGroupsCell(row, index, showHelper));
+          tr.appendChild(tdGroups);
+
+          const tdAdmin = document.createElement('td');
+          const toggle = document.createElement('button');
+          toggle.type = 'button';
+          toggle.className = 'toggle';
+          toggle.setAttribute('role', 'switch');
+          toggle.setAttribute('aria-checked', String(row.admin));
+          toggle.setAttribute('aria-label', `Admin for user ${index + 1}`);
+          toggle.innerHTML = '<span class="toggle-check" aria-hidden="true">✓</span>';
+          toggle.addEventListener('click', () => {
+            row.admin = !row.admin;
+            toggle.setAttribute('aria-checked', String(row.admin));
+            syncOutput();
+          });
+          tdAdmin.appendChild(toggle);
+          tr.appendChild(tdAdmin);
+
+          const tdActions = document.createElement('td');
+          tdActions.className = 'actions';
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.className = 'btn-icon';
+          remove.setAttribute('aria-label', `Remove user ${index + 1}`);
+          remove.innerHTML = '<span aria-hidden="true">−</span>';
+          remove.disabled = rows.length === 1;
+          remove.addEventListener('click', () => {
+            if (rows.length === 1) return;
+            rows.splice(index, 1);
+            announce(`User ${index + 1} removed.`);
+            render();
+          });
+          tdActions.appendChild(remove);
+          tr.appendChild(tdActions);
+
+          tbody.appendChild(tr);
+        });
+        syncOutput();
+      }
+
+      addBtn.addEventListener('click', () => {
+        rows.push({
+          id: crypto.randomUUID(),
+          username: '',
+          password: '',
+          sshKey: '',
+          groups: [],
+          admin: false,
+          _adding: false,
+          _addDraft: '',
+          _editingGroupId: null,
+          _editDraft: '',
+          _groupIds: [],
+          _typeaheadOpen: false,
+          _typeaheadFilter: '',
+          _typeaheadFocus: -1,
+        });
+        announce(`New user added. User ${rows.length}.`);
+        render();
+        const focus = tbody.querySelector('tr:last-child input');
+        if (focus) focus.focus();
+      });
+
+      render();
+
+      return {
+        closeTypeaheads() {
+          let changed = false;
+          rows.forEach((row) => {
+            if (row._typeaheadOpen) {
+              row._typeaheadOpen = false;
+              changed = true;
+            }
+          });
+          if (changed) render();
+        },
+      };
+    }
+
+    function mountUsersIdea({
+      container,
+      id,
+      label,
+      tagClass,
+      title,
+      groupsVariant,
+    }) {
+      const block = document.createElement('div');
+      block.className = 'idea-block';
+      block.innerHTML = `
+        <p class="idea-label"><span class="tag ${tagClass}">${label}</span> ${title}</p>
+        <div class="mock-chrome">
+          <div class="mock-chrome-bar">
+            <span>Image Builder · Users</span>
+            <span>Interactive</span>
+          </div>
+          <div class="mock-chrome-body">
+            <h3 class="wizard-title">Users</h3>
+            <p class="field-desc">
+              Create user accounts to manage access to your image. All usernames must be unique.
+              <a href="#" onclick="return false;">Learn more about accessing your SSH keys</a>
+            </p>
+            <div aria-label="Users field builder ${id}">
+              <table class="users-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Username</th>
+                    <th scope="col">Password</th>
+                    <th scope="col">SSH key</th>
+                    <th scope="col">Groups</th>
+                    <th scope="col">Admin</th>
+                    <th class="actions" scope="col"><span class="sr-only">Actions</span></th>
+                  </tr>
+                </thead>
+                <tbody id="${id}-body"></tbody>
+              </table>
+              <div class="fb-add">
+                <button type="button" class="btn btn-link" id="${id}-add">
+                  <span aria-hidden="true">⊕</span> Add user
+                </button>
+              </div>
+              <div class="sr-only" aria-live="polite" id="${id}-live"></div>
+            </div>
+            <div class="live-output">
+              <h4>Live value (what would be saved)</h4>
+              <pre id="${id}-output">[]</pre>
+            </div>
+          </div>
+        </div>
+      `;
+      container.appendChild(block);
+
+      return createUsersBuilder({
+        tbody: block.querySelector(`#${id}-body`),
+        addBtn: block.querySelector(`#${id}-add`),
+        output: block.querySelector(`#${id}-output`),
+        liveRegion: block.querySelector(`#${id}-live`),
+        groupsVariant,
+        initial: usersSeed,
+      });
+    }
+
+    const usersIdeasRoot = document.getElementById('users-ideas');
+    const usersBuilders = [
+      {
+        id: 'users-idea1',
+        label: 'Idea 1',
+        tagClass: 'tag-current',
+        title: 'Groups = Page A Idea 1 · external + button',
+        groupsVariant: 'external',
+      },
+      {
+        id: 'users-idea2',
+        label: 'Idea 2',
+        tagClass: 'tag-new',
+        title: 'Groups = Page A Idea 2 · + inside the textbox',
+        groupsVariant: 'inline',
+      },
+      {
+        id: 'users-idea3',
+        label: 'Idea 3',
+        tagClass: 'tag-alt',
+        title: 'Groups = Page A Idea 3 · editable label group + Add label',
+        groupsVariant: 'labelGroup',
+      },
+      {
+        id: 'users-idea4',
+        label: 'Idea 4',
+        tagClass: 'tag-alt',
+        title: 'Groups = Page A Idea 4 · typeahead with chips (tight — gets crowded)',
+        groupsVariant: 'typeahead',
+      },
+      {
+        id: 'users-idea4b',
+        label: 'Idea 4b',
+        tagClass: 'tag-new',
+        title: 'Groups typeahead without chips · count badge + summary under field',
+        groupsVariant: 'typeaheadCount',
+      },
+    ].map((idea) => mountUsersIdea({ container: usersIdeasRoot, ...idea }));
+
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('[data-typeahead-root]')) return;
+      usersBuilders.forEach((b) => b && b.closeTypeaheads && b.closeTypeaheads());
+    });
+
+    /* ---------- Playground ---------- */
+    const pgChip = createChipField({
+      shell: document.getElementById('pg-chip-shell'),
+      input: document.getElementById('pg-chip-input'),
+      addBtn: document.getElementById('pg-chip-add'),
+      output: null,
+      initial: ['nomodeset'],
+    });
+
+    const pgGroups = createFieldBuilder({
+      tbody: document.getElementById('pg-groups-body'),
+      addBtn: document.getElementById('pg-groups-add'),
+      output: null,
+      rowLabel: 'Group',
+      columns: [
+        { key: 'name', label: 'Group name', placeholder: 'Admingroup' },
+        { key: 'id', label: 'Group ID', placeholder: 'optional' },
+      ],
+      initial: [{ name: 'Admingroup', id: '019274000' }],
+    });
+
+    const pgOutput = document.getElementById('pg-output');
+    const pgHostname = document.getElementById('pg-hostname');
+
+    function syncPlayground() {
+      const groups = pgGroups.getRows()
+        .map((r) => ({ name: (r.name || '').trim(), id: (r.id || '').trim() }))
+        .filter((r) => r.name || r.id);
+      pgOutput.textContent = JSON.stringify({
+        hostname: pgHostname.value.trim(),
+        kernel: { append: pgChip.getValues() },
+        groups,
+      }, null, 2);
+    }
+
+    pgChip.onChange(syncPlayground);
+    pgGroups.onChange(syncPlayground);
+    pgHostname.addEventListener('input', syncPlayground);
+    syncPlayground();
+
+    document.getElementById('pg-copy').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(pgOutput.textContent);
+        const btn = document.getElementById('pg-copy');
+        const prev = btn.textContent;
+        btn.textContent = 'Copied';
+        setTimeout(() => { btn.textContent = prev; }, 1200);
+      } catch {
+        alert('Could not copy — select the JSON manually.');
+      }
+    });
+
+    document.getElementById('pg-reset').addEventListener('click', () => {
+      pgHostname.value = 'rhel-image';
+      pgChip.setValues(['nomodeset']);
+      pgGroups.reset([{ name: 'Admingroup', id: '019274000' }]);
+      syncPlayground();
+    });
+
+    // quiet unused lint-ish
+    void chipArgs;
+    void fbGroups;
+
+    /* ========== Page D — fresh Users step ideas ========== */
+    (function initPageD() {
+      const root = document.getElementById('page-d-root');
+      if (!root) return;
+
+      const GROUP_OPTIONS = [
+        'wheel', 'admins', 'developers', 'docker', 'kvm', 'libvirt', 'users', 'systemd-journal',
+      ];
+
+      const seedUsers = () => ([
+        {
+          id: crypto.randomUUID(),
+          username: 'cloud-user',
+          password: '••••••••',
+          sshKey: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5...',
+          groups: ['wheel', 'docker'],
+          admin: true,
+        },
+        {
+          id: crypto.randomUUID(),
+          username: '',
+          password: '',
+          sshKey: '',
+          groups: [],
+          admin: false,
+        },
+      ]);
+
+      function cloneSeed() {
+        return seedUsers().map((u) => ({ ...u, groups: [...u.groups] }));
+      }
+
+      function payload(users) {
+        return users.map((u) => ({
+          username: u.username.trim(),
+          password: u.password ? '••••••••' : '',
+          sshKey: u.sshKey.trim() ? '[ssh key set]' : '',
+          groups: [...u.groups],
+          admin: u.admin,
+        })).filter((u) => u.username || u.password || u.sshKey || u.groups.length || u.admin);
+      }
+
+      function fieldLabel(text, forId) {
+        const el = document.createElement('label');
+        el.className = 'field-label';
+        el.htmlFor = forId;
+        el.textContent = text;
+        return el;
+      }
+
+      function textInput({ id, value, placeholder, type = 'text', onInput }) {
+        const input = document.createElement('input');
+        input.className = 'text-input';
+        input.id = id;
+        input.type = type;
+        input.value = value;
+        input.placeholder = placeholder || '';
+        input.autocomplete = 'off';
+        input.addEventListener('input', () => onInput(input.value));
+        return input;
+      }
+
+      function adminToggle(user, onChange) {
+        const wrap = document.createElement('label');
+        wrap.className = 'admin-inline';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'toggle';
+        btn.setAttribute('role', 'switch');
+        btn.setAttribute('aria-checked', String(user.admin));
+        btn.setAttribute('aria-label', 'Administrator');
+        btn.innerHTML = '<span class="toggle-check" aria-hidden="true">✓</span>';
+        btn.addEventListener('click', () => {
+          user.admin = !user.admin;
+          btn.setAttribute('aria-checked', String(user.admin));
+          onChange();
+        });
+        const span = document.createElement('span');
+        span.textContent = 'Admin';
+        wrap.appendChild(btn);
+        wrap.appendChild(span);
+        return wrap;
+      }
+
+      /** Compact groups picker: button shows count, menu = checkboxes + create */
+      function mountGroupsPicker(host, user, sharedOptions, onChange) {
+        host.innerHTML = '';
+        const picker = document.createElement('div');
+        picker.className = 'groups-picker';
+
+        let open = false;
+
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'btn';
+        toggle.style.width = '100%';
+        toggle.style.justifyContent = 'space-between';
+
+        function syncToggleLabel() {
+          const n = user.groups.length;
+          toggle.innerHTML = n
+            ? `<span>${n} group${n === 1 ? '' : 's'} selected</span><span aria-hidden="true">▾</span>`
+            : `<span style="color:#6a6e73">Select groups…</span><span aria-hidden="true">▾</span>`;
+        }
+        syncToggleLabel();
+
+        const menu = document.createElement('div');
+        menu.className = 'groups-picker-menu hidden';
+        menu.setAttribute('role', 'listbox');
+        menu.setAttribute('aria-multiselectable', 'true');
+
+        function renderMenu() {
+          menu.innerHTML = '';
+          sharedOptions.forEach((name) => {
+            const opt = document.createElement('label');
+            opt.className = 'groups-picker-option';
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.checked = user.groups.includes(name);
+            cb.addEventListener('change', () => {
+              if (cb.checked) {
+                if (!user.groups.includes(name)) user.groups.push(name);
+              } else {
+                user.groups = user.groups.filter((g) => g !== name);
+              }
+              syncToggleLabel();
+              syncSummary();
+              onChange();
+            });
+            opt.appendChild(cb);
+            opt.appendChild(document.createTextNode(name));
+            menu.appendChild(opt);
+          });
+
+          const createRow = document.createElement('div');
+          createRow.className = 'groups-picker-create';
+          const createInput = document.createElement('input');
+          createInput.type = 'text';
+          createInput.placeholder = 'Create group…';
+          createInput.autocomplete = 'off';
+          const createBtn = document.createElement('button');
+          createBtn.type = 'button';
+          createBtn.className = 'btn';
+          createBtn.textContent = 'Add';
+          const commit = () => {
+            const v = createInput.value.trim();
+            if (!v) return;
+            if (!sharedOptions.includes(v)) sharedOptions.push(v);
+            if (!user.groups.includes(v)) user.groups.push(v);
+            createInput.value = '';
+            renderMenu();
+            syncToggleLabel();
+            syncSummary();
+            onChange();
+          };
+          createBtn.addEventListener('click', commit);
+          createInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              commit();
+            }
+          });
+          createRow.appendChild(createInput);
+          createRow.appendChild(createBtn);
+          menu.appendChild(createRow);
+        }
+
+        const summary = document.createElement('div');
+        summary.className = 'typeahead-summary';
+        function syncSummary() {
+          summary.textContent = user.groups.length
+            ? user.groups.join(', ')
+            : '';
+          summary.hidden = !user.groups.length;
+        }
+        syncSummary();
+
+        toggle.addEventListener('click', () => {
+          open = !open;
+          menu.classList.toggle('hidden', !open);
+          if (open) renderMenu();
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!picker.contains(e.target) && open) {
+            open = false;
+            menu.classList.add('hidden');
+          }
+        });
+
+        picker.appendChild(toggle);
+        picker.appendChild(menu);
+        host.appendChild(picker);
+        host.appendChild(summary);
+      }
+
+      function userFormFields(user, idPrefix, sharedOptions, onChange) {
+        const grid = document.createElement('div');
+        grid.className = 'form-grid-2';
+
+        const uId = `${idPrefix}-user`;
+        const pId = `${idPrefix}-pass`;
+        const sId = `${idPrefix}-ssh`;
+
+        const userField = document.createElement('div');
+        userField.appendChild(fieldLabel('Username', uId));
+        userField.appendChild(textInput({
+          id: uId,
+          value: user.username,
+          placeholder: 'e.g. cloud-user',
+          onInput: (v) => { user.username = v; onChange(); },
+        }));
+
+        const passField = document.createElement('div');
+        passField.appendChild(fieldLabel('Password', pId));
+        passField.appendChild(textInput({
+          id: pId,
+          value: user.password,
+          placeholder: 'Set password',
+          type: 'password',
+          onInput: (v) => { user.password = v; onChange(); },
+        }));
+
+        const sshField = document.createElement('div');
+        sshField.className = 'span-2';
+        sshField.appendChild(fieldLabel('SSH public key', sId));
+        sshField.appendChild(textInput({
+          id: sId,
+          value: user.sshKey,
+          placeholder: 'Paste SSH public key',
+          onInput: (v) => { user.sshKey = v; onChange(); },
+        }));
+
+        const groupsField = document.createElement('div');
+        groupsField.className = 'span-2';
+        const gLabel = document.createElement('span');
+        gLabel.className = 'field-label';
+        gLabel.id = `${idPrefix}-groups-label`;
+        gLabel.textContent = 'Groups';
+        groupsField.appendChild(gLabel);
+        const gHost = document.createElement('div');
+        gHost.setAttribute('aria-labelledby', gLabel.id);
+        groupsField.appendChild(gHost);
+        mountGroupsPicker(gHost, user, sharedOptions, onChange);
+
+        grid.appendChild(userField);
+        grid.appendChild(passField);
+        grid.appendChild(sshField);
+        grid.appendChild(groupsField);
+        return grid;
+      }
+
+      function ideaShell({ label, tagClass, title, why, build }) {
+        const block = document.createElement('div');
+        block.className = 'idea-block';
+        block.innerHTML = `
+          <p class="idea-label"><span class="tag ${tagClass}">${label}</span> ${title}</p>
+          <p class="why-note"><strong>Why this:</strong> ${why}</p>
+          <div class="mock-chrome">
+            <div class="mock-chrome-bar">
+              <span>Image Builder · Users</span>
+              <span>Interactive</span>
+            </div>
+            <div class="mock-chrome-body" data-body></div>
+          </div>
+        `;
+        const body = block.querySelector('[data-body]');
+        const h = document.createElement('h3');
+        h.className = 'wizard-title';
+        h.textContent = 'Users';
+        const desc = document.createElement('p');
+        desc.className = 'field-desc';
+        desc.innerHTML = 'Create user accounts to manage access to your image. All usernames must be unique. <a href="#" onclick="return false;">Learn more about accessing your SSH keys</a>';
+        body.appendChild(h);
+        body.appendChild(desc);
+        const mount = document.createElement('div');
+        body.appendChild(mount);
+        const live = document.createElement('div');
+        live.className = 'live-output';
+        live.innerHTML = '<h4>Live value (what would be saved)</h4><pre>[]</pre>';
+        body.appendChild(live);
+        root.appendChild(block);
+        build(mount, live.querySelector('pre'));
+      }
+
+      /* ---- D1: User cards ---- */
+      ideaShell({
+        label: 'Idea D1',
+        tagClass: 'tag-new',
+        title: 'Stacked user cards (recommended)',
+        why: 'Each user gets a full vertical form — no cramped table cells. Header shows identity + admin + remove at a glance. Groups use a compact picker (count in the button, details underneath).',
+        build(mount, pre) {
+          let users = cloneSeed();
+          const sharedOptions = [...GROUP_OPTIONS];
+
+          function sync() {
+            pre.textContent = JSON.stringify(payload(users), null, 2);
+          }
+
+          function render() {
+            mount.innerHTML = '';
+            users.forEach((user, index) => {
+              const card = document.createElement('div');
+              card.className = 'user-card';
+
+              const header = document.createElement('div');
+              header.className = 'user-card-header';
+              const title = document.createElement('h4');
+              title.className = 'user-card-title';
+              title.innerHTML = user.username.trim()
+                ? escapeHtml(user.username.trim())
+                : `<span class="muted">User ${index + 1}</span>`;
+              const adminPill = document.createElement('span');
+              adminPill.className = 'pill-admin' + (user.admin ? '' : ' is-off');
+              adminPill.textContent = user.admin ? 'Admin' : 'Standard';
+              header.appendChild(title);
+              header.appendChild(adminPill);
+              header.appendChild(adminToggle(user, () => {
+                render();
+                sync();
+              }));
+              const remove = document.createElement('button');
+              remove.type = 'button';
+              remove.className = 'btn-icon';
+              remove.setAttribute('aria-label', `Remove user ${index + 1}`);
+              remove.innerHTML = '<span aria-hidden="true">−</span>';
+              remove.disabled = users.length === 1;
+              remove.addEventListener('click', () => {
+                if (users.length === 1) return;
+                users.splice(index, 1);
+                render();
+                sync();
+              });
+              header.appendChild(remove);
+
+              const body = document.createElement('div');
+              body.className = 'user-card-body';
+              body.appendChild(userFormFields(user, `d1-${user.id}`, sharedOptions, () => {
+                // Refresh title when username changes without full remount of groups menu focus issues
+                title.innerHTML = user.username.trim()
+                  ? escapeHtml(user.username.trim())
+                  : `<span class="muted">User ${index + 1}</span>`;
+                adminPill.className = 'pill-admin' + (user.admin ? '' : ' is-off');
+                adminPill.textContent = user.admin ? 'Admin' : 'Standard';
+                sync();
+              }));
+
+              card.appendChild(header);
+              card.appendChild(body);
+              mount.appendChild(card);
+            });
+
+            const add = document.createElement('button');
+            add.type = 'button';
+            add.className = 'btn btn-link';
+            add.innerHTML = '<span aria-hidden="true">⊕</span> Add user';
+            add.addEventListener('click', () => {
+              users.push({
+                id: crypto.randomUUID(),
+                username: '',
+                password: '',
+                sshKey: '',
+                groups: [],
+                admin: false,
+              });
+              render();
+              sync();
+              const focus = mount.querySelector('.user-card:last-of-type input');
+              if (focus) focus.focus();
+            });
+            mount.appendChild(add);
+            sync();
+          }
+
+          render();
+        },
+      });
+
+      /* ---- D2: Accordion list ---- */
+      ideaShell({
+        label: 'Idea D2',
+        tagClass: 'tag-alt',
+        title: 'Summary list → expand to edit',
+        why: 'Dense overview when you have several users. Collapsed rows show username, admin, and group count; expand only the user you’re editing.',
+        build(mount, pre) {
+          let users = cloneSeed();
+          let openId = users[0].id;
+          const sharedOptions = [...GROUP_OPTIONS];
+
+          function sync() {
+            pre.textContent = JSON.stringify(payload(users), null, 2);
+          }
+
+          function render() {
+            mount.innerHTML = '';
+            users.forEach((user, index) => {
+              const row = document.createElement('div');
+              row.className = 'accordion-row' + (openId === user.id ? ' is-open' : '');
+
+              const summary = document.createElement('button');
+              summary.type = 'button';
+              summary.className = 'accordion-summary';
+              summary.setAttribute('aria-expanded', String(openId === user.id));
+              const name = document.createElement('span');
+              name.className = 'name';
+              name.textContent = user.username.trim() || `User ${index + 1}`;
+              const admin = document.createElement('span');
+              admin.className = 'pill-admin' + (user.admin ? '' : ' is-off');
+              admin.textContent = user.admin ? 'Admin' : 'Standard';
+              const groupsMeta = document.createElement('span');
+              groupsMeta.className = 'meta';
+              groupsMeta.textContent = user.groups.length
+                ? `${user.groups.length} group${user.groups.length === 1 ? '' : 's'}`
+                : 'No groups';
+              const credMeta = document.createElement('span');
+              credMeta.className = 'meta';
+              const bits = [];
+              if (user.password) bits.push('password');
+              if (user.sshKey) bits.push('SSH');
+              credMeta.textContent = bits.length ? bits.join(' · ') : 'No credentials';
+              const chev = document.createElement('span');
+              chev.className = 'accordion-chevron';
+              chev.setAttribute('aria-hidden', 'true');
+              chev.textContent = '▾';
+              summary.appendChild(name);
+              summary.appendChild(admin);
+              summary.appendChild(groupsMeta);
+              summary.appendChild(credMeta);
+              summary.appendChild(chev);
+              summary.addEventListener('click', () => {
+                openId = openId === user.id ? null : user.id;
+                render();
+              });
+              row.appendChild(summary);
+
+              if (openId === user.id) {
+                const panel = document.createElement('div');
+                panel.className = 'accordion-panel';
+                const tools = document.createElement('div');
+                tools.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin:0.75rem 0;';
+                tools.appendChild(adminToggle(user, () => { render(); sync(); }));
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'btn';
+                remove.textContent = 'Remove user';
+                remove.disabled = users.length === 1;
+                remove.addEventListener('click', () => {
+                  if (users.length === 1) return;
+                  users.splice(index, 1);
+                  openId = users[0]?.id || null;
+                  render();
+                  sync();
+                });
+                tools.appendChild(remove);
+                panel.appendChild(tools);
+                panel.appendChild(userFormFields(user, `d2-${user.id}`, sharedOptions, () => {
+                  sync();
+                  // update summary labels lightly via full render is heavy; sync JSON is enough while typing
+                  name.textContent = user.username.trim() || `User ${index + 1}`;
+                  groupsMeta.textContent = user.groups.length
+                    ? `${user.groups.length} group${user.groups.length === 1 ? '' : 's'}`
+                    : 'No groups';
+                }));
+                row.appendChild(panel);
+              }
+
+              mount.appendChild(row);
+            });
+
+            const add = document.createElement('button');
+            add.type = 'button';
+            add.className = 'btn btn-link';
+            add.innerHTML = '<span aria-hidden="true">⊕</span> Add user';
+            add.addEventListener('click', () => {
+              const u = {
+                id: crypto.randomUUID(),
+                username: '',
+                password: '',
+                sshKey: '',
+                groups: [],
+                admin: false,
+              };
+              users.push(u);
+              openId = u.id;
+              render();
+              sync();
+            });
+            mount.appendChild(add);
+            sync();
+          }
+
+          render();
+        },
+      });
+
+      /* ---- D3: Master–detail ---- */
+      ideaShell({
+        label: 'Idea D3',
+        tagClass: 'tag-alt',
+        title: 'Master–detail (list + editor)',
+        why: 'Best when configuring many users one at a time. The list stays stable; the form never shares horizontal space with siblings.',
+        build(mount, pre) {
+          let users = cloneSeed();
+          let selectedId = users[0].id;
+          const sharedOptions = [...GROUP_OPTIONS];
+
+          function sync() {
+            pre.textContent = JSON.stringify(payload(users), null, 2);
+          }
+
+          function render() {
+            mount.innerHTML = '';
+            const layout = document.createElement('div');
+            layout.className = 'split-layout';
+
+            const list = document.createElement('div');
+            list.className = 'split-list';
+            list.innerHTML = '<div class="split-list-header">Accounts</div>';
+            const items = document.createElement('div');
+            items.className = 'split-list-items';
+            users.forEach((user, index) => {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = 'split-user-btn' + (user.id === selectedId ? ' is-active' : '');
+              btn.innerHTML = `
+                <span class="name">${escapeHtml(user.username.trim() || `User ${index + 1}`)}</span>
+                <span class="sub">${user.admin ? 'Admin' : 'Standard'}${user.groups.length ? ` · ${user.groups.length} groups` : ''}</span>
+              `;
+              btn.addEventListener('click', () => {
+                selectedId = user.id;
+                render();
+              });
+              items.appendChild(btn);
+            });
+            list.appendChild(items);
+            const footer = document.createElement('div');
+            footer.className = 'split-list-footer';
+            const add = document.createElement('button');
+            add.type = 'button';
+            add.className = 'btn';
+            add.style.width = '100%';
+            add.innerHTML = '<span aria-hidden="true">⊕</span> Add user';
+            add.addEventListener('click', () => {
+              const u = {
+                id: crypto.randomUUID(),
+                username: '',
+                password: '',
+                sshKey: '',
+                groups: [],
+                admin: false,
+              };
+              users.push(u);
+              selectedId = u.id;
+              render();
+              sync();
+            });
+            footer.appendChild(add);
+            list.appendChild(footer);
+
+            const detail = document.createElement('div');
+            detail.className = 'split-detail';
+            const user = users.find((u) => u.id === selectedId);
+            if (!user) {
+              detail.innerHTML = '<div class="split-detail-empty">Select a user to edit, or add a new one.</div>';
+            } else {
+              const head = document.createElement('div');
+              head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;gap:1rem;';
+              const h = document.createElement('h4');
+              h.className = 'user-card-title';
+              h.style.margin = '0';
+              h.textContent = user.username.trim() || 'New user';
+              head.appendChild(h);
+              head.appendChild(adminToggle(user, () => { render(); sync(); }));
+              detail.appendChild(head);
+              detail.appendChild(userFormFields(user, `d3-${user.id}`, sharedOptions, () => {
+                h.textContent = user.username.trim() || 'New user';
+                sync();
+                // refresh list labels
+                const active = items.querySelector('.is-active .name');
+                const activeSub = items.querySelector('.is-active .sub');
+                if (active) active.textContent = user.username.trim() || 'New user';
+                if (activeSub) {
+                  activeSub.textContent = `${user.admin ? 'Admin' : 'Standard'}${user.groups.length ? ` · ${user.groups.length} groups` : ''}`;
+                }
+              }));
+              const remove = document.createElement('button');
+              remove.type = 'button';
+              remove.className = 'btn';
+              remove.style.marginTop = '1rem';
+              remove.textContent = 'Remove this user';
+              remove.disabled = users.length === 1;
+              remove.addEventListener('click', () => {
+                if (users.length === 1) return;
+                const idx = users.findIndex((u) => u.id === selectedId);
+                users.splice(idx, 1);
+                selectedId = users[Math.max(0, idx - 1)].id;
+                render();
+                sync();
+              });
+              detail.appendChild(remove);
+            }
+
+            layout.appendChild(list);
+            layout.appendChild(detail);
+            mount.appendChild(layout);
+            sync();
+          }
+
+          render();
+        },
+      });
+    })();
+  </script>
+</body>
+</html>

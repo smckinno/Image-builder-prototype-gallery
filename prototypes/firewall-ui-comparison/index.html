@@ -1,0 +1,2297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Firewall UI Comparison — iptables vs firewalld</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@patternfly/patternfly@6.2.0/patternfly.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@patternfly/patternfly@6.2.0/patternfly-addons.css" />
+  <style>
+    :root {
+      --proto-bg: #f0f0f0;
+      --proto-panel: #fff;
+      --proto-border: #c7c7c7;
+      --proto-blue: #0066cc;
+      --proto-blue-light: #e7f1fa;
+      --proto-text: #151515;
+      --proto-muted: #6a6e73;
+      --proto-danger: #c9190b;
+      --proto-green: #3e8635;
+      --proto-green-light: #e9f5e6;
+      --proto-orange: #f0ab00;
+      --proto-orange-light: #fef3e0;
+      --proto-purple: #6753ac;
+      --proto-purple-light: #f2f0fc;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Red Hat Text", "RedHatText", Helvetica, Arial, sans-serif;
+      background: var(--proto-bg);
+      color: var(--proto-text);
+      min-height: 100vh;
+    }
+
+    .proto-header {
+      background: #151515;
+      color: #fff;
+      padding: 1rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.5rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .proto-header h1 { margin: 0; font-size: 1.125rem; font-weight: 500; }
+    .proto-header p { margin: 0.25rem 0 0; font-size: 0.875rem; color: #c7c7c7; }
+
+    .proto-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      background: #3d3d3d;
+      font-size: 0.75rem;
+      color: #f0f0f0;
+    }
+
+    .proto-nav {
+      background: #fff;
+      border-bottom: 1px solid var(--proto-border);
+      padding: 0 1.5rem;
+      display: flex;
+      gap: 0.25rem;
+      overflow-x: auto;
+    }
+
+    .proto-nav button {
+      appearance: none;
+      border: none;
+      background: transparent;
+      padding: 0.9rem 1rem;
+      font: inherit;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--proto-muted);
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .proto-nav button:hover { color: var(--proto-text); }
+    .proto-nav button[aria-selected="true"] {
+      color: var(--proto-blue);
+      border-bottom-color: var(--proto-blue);
+    }
+
+    .proto-main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    .panel {
+      background: var(--proto-panel);
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .panel h2 { margin: 0 0 0.35rem; font-size: 1.25rem; font-weight: 500; }
+
+    .panel .lede {
+      margin: 0 0 1.25rem;
+      color: var(--proto-muted);
+      font-size: 0.875rem;
+      max-width: 65ch;
+    }
+
+    .hidden { display: none !important; }
+
+    .callout {
+      background: var(--proto-blue-light);
+      border-left: 3px solid var(--proto-blue);
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .callout strong { font-weight: 600; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 800px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .compare-card {
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      padding: 1rem;
+      background: #fafafa;
+    }
+
+    .compare-card h3 { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; }
+    .compare-card ul { margin: 0.5rem 0 0; padding-left: 1.1rem; font-size: 0.8125rem; color: #3c3f42; }
+    .compare-card li { margin-bottom: 0.35rem; }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 0.15rem 0.45rem;
+      border-radius: 2px;
+      margin-bottom: 0.5rem;
+    }
+
+    .tag-iptables { background: #fef0e1; color: #8f4700; }
+    .tag-firewalld { background: #e7f1fa; color: #002952; }
+
+    /* ────────── Buttons ────────── */
+    .btn {
+      appearance: none;
+      border: 1px solid var(--proto-border);
+      background: #fff;
+      color: var(--proto-text);
+      font: inherit;
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 0.35rem 0.75rem;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+      height: 36px;
+    }
+
+    .btn:hover { background: #f0f0f0; }
+
+    .btn-primary {
+      background: var(--proto-blue);
+      border-color: var(--proto-blue);
+      color: #fff;
+    }
+
+    .btn-primary:hover { background: #004d99; }
+
+    .btn-danger {
+      background: var(--proto-danger);
+      border-color: var(--proto-danger);
+      color: #fff;
+    }
+
+    .btn-danger:hover { background: #a30000; }
+
+    .btn-link {
+      border: none;
+      background: transparent;
+      color: var(--proto-blue);
+      padding: 0.35rem 0;
+      height: auto;
+      font-weight: 500;
+    }
+
+    .btn-link:hover { text-decoration: underline; }
+
+    .btn-sm {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+      height: 28px;
+    }
+
+    .btn-icon-sm {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border-radius: 4px;
+      border: 1px solid var(--proto-border);
+      background: #fff;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.875rem;
+      color: var(--proto-muted);
+    }
+
+    .btn-icon-sm:hover { background: #f0f0f0; color: var(--proto-text); }
+    .btn-icon-sm.danger:hover { background: #faeae8; color: var(--proto-danger); }
+
+    /* ────────── Form fields ────────── */
+    .field { margin-bottom: 1rem; }
+
+    .field-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+    }
+
+    .field-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    .field-row .field { margin-bottom: 0; flex: 1; min-width: 120px; }
+
+    .text-input, select.text-input {
+      width: 100%;
+      height: 36px;
+      padding: 0 0.5rem;
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      font: inherit;
+      font-size: 0.875rem;
+      background: #fff;
+    }
+
+    .text-input:focus, select.text-input:focus {
+      outline: none;
+      border-color: var(--proto-blue);
+      box-shadow: 0 0 0 1px var(--proto-blue);
+    }
+
+    /* ────────── IPTABLES: Rules table ────────── */
+    .rules-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.8125rem;
+    }
+
+    .rules-table th {
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--proto-muted);
+      padding: 0.5rem 0.6rem;
+      border-bottom: 2px solid var(--proto-border);
+      white-space: nowrap;
+    }
+
+    .rules-table td {
+      padding: 0.5rem 0.6rem;
+      border-bottom: 1px solid #e8e8e8;
+      vertical-align: middle;
+    }
+
+    .rules-table tbody tr { transition: background 0.1s; }
+    .rules-table tbody tr:hover { background: #fafafa; }
+    .rules-table tbody tr.dragging { opacity: 0.4; background: var(--proto-blue-light); }
+    .rules-table tbody tr.drag-over { border-top: 2px solid var(--proto-blue); }
+
+    .drag-handle {
+      cursor: grab;
+      color: var(--proto-muted);
+      font-size: 1rem;
+      user-select: none;
+      padding: 0 0.25rem;
+    }
+
+    .drag-handle:active { cursor: grabbing; }
+
+    .rule-num {
+      font-weight: 700;
+      color: var(--proto-muted);
+      font-size: 0.75rem;
+      width: 30px;
+      text-align: center;
+    }
+
+    .action-badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .action-accept { background: var(--proto-green-light); color: var(--proto-green); }
+    .action-drop { background: #faeae8; color: var(--proto-danger); }
+    .action-reject { background: var(--proto-orange-light); color: #8f4700; }
+
+    .default-policy-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: #fafafa;
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      margin-top: 1rem;
+      font-size: 0.875rem;
+    }
+
+    .default-policy-bar strong { font-weight: 600; }
+
+    /* ────────── Traffic Simulator ────────── */
+    .simulator {
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      background: #151515;
+      border-radius: 4px;
+      color: #f0f0f0;
+    }
+
+    .simulator h4 {
+      margin: 0 0 0.75rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #e0e0e0;
+    }
+
+    .sim-fields {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    .sim-field { flex: 1; min-width: 100px; }
+
+    .sim-field label {
+      display: block;
+      font-size: 0.6875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #8a8d90;
+      margin-bottom: 0.25rem;
+      font-weight: 600;
+    }
+
+    .sim-field input, .sim-field select {
+      width: 100%;
+      height: 32px;
+      padding: 0 0.5rem;
+      border: 1px solid #4f5255;
+      border-radius: 4px;
+      font: inherit;
+      font-size: 0.8125rem;
+      background: #292929;
+      color: #f0f0f0;
+    }
+
+    .sim-field input:focus, .sim-field select:focus {
+      outline: none;
+      border-color: var(--proto-blue);
+    }
+
+    .sim-result {
+      margin-top: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .sim-result.accept { background: rgba(62, 134, 53, 0.2); color: #92d68e; border: 1px solid rgba(62, 134, 53, 0.4); }
+    .sim-result.drop { background: rgba(201, 25, 11, 0.2); color: #f4a9a2; border: 1px solid rgba(201, 25, 11, 0.4); }
+    .sim-result.reject { background: rgba(240, 171, 0, 0.2); color: #f5d47b; border: 1px solid rgba(240, 171, 0, 0.4); }
+    .sim-result.none { background: rgba(255,255,255,0.05); color: #8a8d90; border: 1px solid #4f5255; }
+
+    /* ────────── FIREWALLD: Image Builder form ────────── */
+    .zone-desc {
+      font-size: 0.8125rem;
+      color: var(--proto-muted);
+      margin: 0 0 0.75rem;
+      max-width: 55ch;
+    }
+
+    .fwd-section {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #e8e8e8;
+    }
+
+    .fwd-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+    .fwd-section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--proto-muted);
+      margin: 0 0 0.75rem;
+    }
+
+    .empty-state-text {
+      font-size: 0.8125rem;
+      color: var(--proto-muted);
+      font-style: italic;
+    }
+
+    /* Services as a two-column grid */
+    .service-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    @media (max-width: 600px) {
+      .service-grid { grid-template-columns: 1fr; }
+    }
+
+    .service-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #f0f0f0;
+      gap: 0.5rem;
+    }
+
+    .service-row:nth-child(odd) { border-right: 1px solid #f0f0f0; }
+
+    .service-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .service-name {
+      font-size: 0.8125rem;
+      font-weight: 500;
+    }
+
+    .service-port {
+      font-size: 0.6875rem;
+      color: var(--proto-muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 24px;
+      border: none;
+      border-radius: 999px;
+      background: #8a8d90;
+      cursor: pointer;
+      padding: 0;
+      transition: background 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .toggle[aria-checked="true"] { background: var(--proto-blue); }
+
+    .toggle::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 0.15s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .toggle[aria-checked="true"]::after { transform: translateX(16px); }
+
+    /* Collapsible section toggle */
+    .rich-rules-toggle {
+      appearance: none;
+      border: none;
+      background: transparent;
+      font: inherit;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--proto-blue);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0;
+    }
+
+    .rich-rules-toggle:hover { text-decoration: underline; }
+
+    /* Custom ports */
+    .custom-port-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .port-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.15rem 0.45rem;
+      background: var(--proto-purple-light);
+      border-radius: 999px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      color: var(--proto-purple);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .port-chip .remove-port {
+      appearance: none;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--proto-purple);
+      font-size: 0.75rem;
+      padding: 0.1rem;
+      border-radius: 50%;
+    }
+
+    .port-chip .remove-port:hover { background: rgba(103, 83, 172, 0.15); }
+
+    .add-port-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-top: 0.5rem;
+    }
+
+    .add-port-row input, .add-port-row select {
+      height: 28px;
+      padding: 0 0.4rem;
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      font: inherit;
+      font-size: 0.75rem;
+      background: #fff;
+    }
+
+    .add-port-row input { width: 80px; }
+    .add-port-row select { width: 70px; }
+
+    .add-port-row input:focus, .add-port-row select:focus {
+      outline: none;
+      border-color: var(--proto-blue);
+    }
+
+    /* Enabled count summary */
+    .enabled-summary {
+      font-size: 0.75rem;
+      color: var(--proto-muted);
+      margin-top: 0.5rem;
+    }
+
+    /* ────────── Compact A: Chip select ────────── */
+    .svc-chip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .svc-chip {
+      appearance: none;
+      border: 1px solid var(--proto-border);
+      background: #fff;
+      color: var(--proto-text);
+      font: inherit;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.3rem 0.65rem;
+      border-radius: 999px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.12s ease;
+    }
+
+    .svc-chip:hover { border-color: #8a8d90; background: #fafafa; }
+
+    .svc-chip.selected {
+      background: var(--proto-blue);
+      border-color: var(--proto-blue);
+      color: #fff;
+    }
+
+    .svc-chip.selected:hover { background: #004d99; border-color: #004d99; }
+
+    .svc-chip .chip-port {
+      font-size: 0.625rem;
+      opacity: 0.7;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .svc-chip.disabled-chip {
+      background: #faeae8;
+      border-color: #faeae8;
+      color: var(--proto-danger);
+    }
+
+    .svc-chip.disabled-chip:hover { background: #f4c9c4; }
+
+    /* Compact port input */
+    .port-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      align-items: center;
+    }
+
+    .port-inline input {
+      width: 100px;
+      height: 28px;
+      padding: 0 0.4rem;
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      font: inherit;
+      font-size: 0.75rem;
+      background: #fff;
+    }
+
+    .port-inline input:focus {
+      outline: none;
+      border-color: var(--proto-blue);
+    }
+
+    /* ────────── Compact B: Checkbox table ────────── */
+    .svc-check-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.8125rem;
+    }
+
+    .svc-check-table th {
+      text-align: left;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--proto-muted);
+      padding: 0.4rem 0.5rem;
+      border-bottom: 2px solid var(--proto-border);
+    }
+
+    .svc-check-table td {
+      padding: 0.35rem 0.5rem;
+      border-bottom: 1px solid #f0f0f0;
+      vertical-align: middle;
+    }
+
+    .svc-check-table tbody tr:hover { background: #fafafa; }
+
+    .svc-check-table input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--proto-blue);
+      cursor: pointer;
+    }
+
+    .svc-check-table .port-cell {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.6875rem;
+      color: var(--proto-muted);
+    }
+
+    /* Blueprint disclosure */
+    .blueprint-disclosure {
+      margin-top: 1rem;
+    }
+
+    .blueprint-disclosure summary {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--proto-muted);
+      cursor: pointer;
+      padding: 0.35rem 0;
+    }
+
+    .blueprint-disclosure summary:hover { color: var(--proto-text); }
+
+    /* ────────── Compact D: Multiselect dropdown ────────── */
+    .ms-wrapper {
+      position: relative;
+    }
+
+    .ms-toggle {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem;
+      min-height: 36px;
+      padding: 0.25rem 0.5rem;
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      background: #fff;
+      cursor: text;
+    }
+
+    .ms-toggle:focus-within,
+    .ms-toggle.is-open {
+      border-color: var(--proto-blue);
+      box-shadow: 0 0 0 1px var(--proto-blue);
+    }
+
+    .ms-toggle .ms-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      padding: 0.1rem 0.15rem 0.1rem 0.45rem;
+      background: #f0f0f0;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--proto-text);
+      max-width: 180px;
+    }
+
+    .ms-toggle .ms-chip.is-danger {
+      background: #faeae8;
+      color: var(--proto-danger);
+    }
+
+    .ms-chip-close {
+      appearance: none;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: #6a6e73;
+      font-size: 0.8125rem;
+      padding: 0.15rem;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .ms-chip-close:hover { background: rgba(0,0,0,0.08); color: var(--proto-text); }
+    .ms-chip.is-danger .ms-chip-close { color: var(--proto-danger); }
+    .ms-chip.is-danger .ms-chip-close:hover { background: rgba(201,25,11,0.1); }
+
+    .ms-input {
+      flex: 1;
+      min-width: 100px;
+      border: none;
+      outline: none;
+      font: inherit;
+      font-size: 0.8125rem;
+      padding: 0.25rem 0;
+      background: transparent;
+    }
+
+    .ms-utilities {
+      display: flex;
+      align-items: center;
+      gap: 0.1rem;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    .ms-util-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #6a6e73;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8125rem;
+    }
+
+    .ms-util-btn:hover { background: #f0f0f0; color: var(--proto-text); }
+
+    .ms-menu {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 4px);
+      z-index: 20;
+      max-height: 240px;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      padding: 0.25rem 0;
+    }
+
+    .ms-option {
+      appearance: none;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      padding: 0.45rem 0.75rem;
+      font: inherit;
+      font-size: 0.8125rem;
+      cursor: pointer;
+      color: var(--proto-text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .ms-option:hover,
+    .ms-option.is-focused { background: var(--proto-blue-light); }
+
+    .ms-option.is-selected { font-weight: 600; }
+
+    .ms-option .ms-check {
+      color: var(--proto-blue);
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
+
+    .ms-option-port {
+      font-size: 0.6875rem;
+      color: var(--proto-muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .ms-option-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .ms-empty {
+      padding: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--proto-muted);
+    }
+
+    .blueprint-disclosure pre {
+      margin: 0.5rem 0 0;
+      padding: 0.75rem;
+      background: #151515;
+      color: #f0f0f0;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      border: 0;
+    }
+
+    .mock-chrome {
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .mock-chrome-bar {
+      background: #f0f0f0;
+      border-bottom: 1px solid var(--proto-border);
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      color: var(--proto-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .mock-chrome-body { padding: 1.25rem 1.5rem 1.5rem; }
+
+    /* Add-rule form drawer */
+    .drawer {
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      background: #fafafa;
+      margin-top: 1rem;
+      overflow: hidden;
+    }
+
+    .drawer-header {
+      padding: 0.75rem 1rem;
+      background: #fff;
+      border-bottom: 1px solid var(--proto-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .drawer-body { padding: 1rem; }
+
+    .toolbar {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .toolbar-spacer { flex: 1; }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .status-dot.active { background: var(--proto-green); }
+    .status-dot.inactive { background: var(--proto-muted); }
+  </style>
+</head>
+<body>
+  <header class="proto-header">
+    <div>
+      <h1>Firewall UI Comparison</h1>
+      <p>iptables rule builder vs firewalld zone dashboard — interactive prototypes</p>
+    </div>
+    <span class="proto-badge">Prototype · not production</span>
+  </header>
+
+  <nav class="proto-nav" role="tablist" aria-label="Prototype views">
+    <button type="button" role="tab" id="tab-overview" aria-selected="true" aria-controls="panel-overview" data-panel="overview">Overview</button>
+    <button type="button" role="tab" id="tab-iptables" aria-selected="false" aria-controls="panel-iptables" data-panel="iptables">iptables — Rule Builder</button>
+    <button type="button" role="tab" id="tab-firewalld" aria-selected="false" aria-controls="panel-firewalld" data-panel="firewalld">firewalld · A — Toggle Grid</button>
+    <button type="button" role="tab" id="tab-compact-a" aria-selected="false" aria-controls="panel-compact-a" data-panel="compactA">firewalld · B — Chip Select</button>
+    <button type="button" role="tab" id="tab-compact-b" aria-selected="false" aria-controls="panel-compact-b" data-panel="compactB">firewalld · C — Checkbox Table</button>
+    <button type="button" role="tab" id="tab-multiselect" aria-selected="false" aria-controls="panel-multiselect" data-panel="multiselect">firewalld · D — Multiselect</button>
+  </nav>
+
+  <main class="proto-main">
+
+    <!-- ═══════════ OVERVIEW ═══════════ -->
+    <section id="panel-overview" role="tabpanel" aria-labelledby="tab-overview">
+      <div class="panel">
+        <h2>Two mental models, two UIs</h2>
+        <p class="lede">
+          The iptables approach treats firewall config as an ordered list of match→action rules.
+          firewalld wraps that complexity in zone-based trust levels with service toggles.
+          Each mental model calls for a fundamentally different interface.
+        </p>
+
+        <div class="grid-2">
+          <div class="compare-card">
+            <span class="tag tag-iptables">iptables</span>
+            <h3>Rule Builder</h3>
+            <p style="margin:0 0 0.5rem;font-size:0.875rem;color:#3c3f42;">
+              Primary pattern: <strong>draggable table</strong> where each row is a rule.
+              First match wins — rule order is everything.
+            </p>
+            <ul>
+              <li>Drag-to-reorder rows (priority matters)</li>
+              <li>Each row: direction, protocol, source/dest, port, action</li>
+              <li>Default policy bar at the bottom</li>
+              <li>Traffic simulator: "would this packet get through?"</li>
+              <li><strong>Feels like:</strong> a spreadsheet / AWS Security Groups</li>
+            </ul>
+          </div>
+          <div class="compare-card">
+            <span class="tag tag-firewalld">Image Builder · firewalld</span>
+            <h3>Blueprint Form</h3>
+            <p style="margin:0 0 0.5rem;font-size:0.875rem;color:#3c3f42;">
+              Primary pattern: <strong>form → blueprint output</strong>.
+              Toggle services, add ports, preview the config that gets baked into the image.
+            </p>
+            <ul>
+              <li>Service toggles: enable SSH, HTTPS, Cockpit, etc.</li>
+              <li>Additional ports for non-standard services</li>
+              <li>Explicitly disabled services (override distro defaults)</li>
+              <li>Live blueprint preview in JSON or TOML</li>
+              <li><strong>Feels like:</strong> a wizard step in Image Builder</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout" style="margin-top:1.25rem;">
+          <strong>Try both tabs.</strong> The iptables view is a raw rule table with drag-to-reorder and a traffic simulator.
+          The firewalld view is an Image Builder form — toggle services, add ports, and watch the blueprint update live.
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ IPTABLES ═══════════ -->
+    <section id="panel-iptables" class="hidden" role="tabpanel" aria-labelledby="tab-iptables">
+      <div class="panel">
+        <span class="tag tag-iptables">iptables-style</span>
+        <h2>Firewall Rule Builder</h2>
+        <p class="lede">
+          Rules are evaluated top-to-bottom — first matching rule wins.
+          Drag rows to reorder priority. The default policy catches anything that doesn't match.
+        </p>
+
+        <div class="mock-chrome">
+          <div class="mock-chrome-bar">
+            <span>Network Security · Firewall Rules</span>
+            <span>Interactive</span>
+          </div>
+          <div class="mock-chrome-body">
+
+            <div class="toolbar">
+              <h3 style="margin:0;font-size:1rem;font-weight:600;">INPUT Chain</h3>
+              <div class="toolbar-spacer"></div>
+              <button type="button" class="btn btn-sm" id="ipt-toggle-form">
+                <span aria-hidden="true">+</span> Add rule
+              </button>
+            </div>
+
+            <table class="rules-table" aria-label="Firewall rules">
+              <thead>
+                <tr>
+                  <th style="width:30px;"></th>
+                  <th style="width:36px;">#</th>
+                  <th>Direction</th>
+                  <th>Protocol</th>
+                  <th>Source</th>
+                  <th>Dest</th>
+                  <th>Port</th>
+                  <th>Action</th>
+                  <th style="width:60px;"></th>
+                </tr>
+              </thead>
+              <tbody id="ipt-rules-body"></tbody>
+            </table>
+
+            <div class="default-policy-bar">
+              <div>
+                <strong>Default policy:</strong>
+                <span id="ipt-default-policy-label">DROP</span>
+                — packets that match no rule above are dropped
+              </div>
+              <select class="text-input" id="ipt-default-policy" style="width:100px;height:32px;">
+                <option value="DROP" selected>DROP</option>
+                <option value="ACCEPT">ACCEPT</option>
+                <option value="REJECT">REJECT</option>
+              </select>
+            </div>
+
+            <!-- Add rule form (hidden by default) -->
+            <div class="drawer hidden" id="ipt-add-form">
+              <div class="drawer-header">
+                <span>New rule</span>
+                <button type="button" class="btn-icon-sm" id="ipt-close-form" aria-label="Close">×</button>
+              </div>
+              <div class="drawer-body">
+                <div class="field-row">
+                  <div class="field">
+                    <label class="field-label" for="ipt-new-dir">Direction</label>
+                    <select class="text-input" id="ipt-new-dir">
+                      <option value="IN">IN</option>
+                      <option value="OUT">OUT</option>
+                      <option value="FWD">FORWARD</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label class="field-label" for="ipt-new-proto">Protocol</label>
+                    <select class="text-input" id="ipt-new-proto">
+                      <option value="TCP">TCP</option>
+                      <option value="UDP">UDP</option>
+                      <option value="ICMP">ICMP</option>
+                      <option value="ANY">ANY</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label class="field-label" for="ipt-new-src">Source IP</label>
+                    <input class="text-input" id="ipt-new-src" type="text" placeholder="0.0.0.0/0" />
+                  </div>
+                  <div class="field">
+                    <label class="field-label" for="ipt-new-dst">Dest IP</label>
+                    <input class="text-input" id="ipt-new-dst" type="text" placeholder="0.0.0.0/0" />
+                  </div>
+                  <div class="field">
+                    <label class="field-label" for="ipt-new-port">Port</label>
+                    <input class="text-input" id="ipt-new-port" type="text" placeholder="e.g. 443" />
+                  </div>
+                  <div class="field">
+                    <label class="field-label" for="ipt-new-action">Action</label>
+                    <select class="text-input" id="ipt-new-action">
+                      <option value="ACCEPT">ACCEPT</option>
+                      <option value="DROP">DROP</option>
+                      <option value="REJECT">REJECT</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="margin-top:0.75rem;display:flex;gap:0.5rem;">
+                  <button type="button" class="btn btn-primary btn-sm" id="ipt-add-rule">Add rule</button>
+                  <button type="button" class="btn btn-sm" id="ipt-cancel-rule">Cancel</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Traffic simulator -->
+            <div class="simulator">
+              <h4>🔍 Traffic Simulator — "Would this packet get through?"</h4>
+              <div class="sim-fields">
+                <div class="sim-field">
+                  <label for="sim-proto">Protocol</label>
+                  <select id="sim-proto">
+                    <option value="TCP">TCP</option>
+                    <option value="UDP">UDP</option>
+                    <option value="ICMP">ICMP</option>
+                  </select>
+                </div>
+                <div class="sim-field">
+                  <label for="sim-src">Source IP</label>
+                  <input id="sim-src" type="text" value="203.0.113.5" />
+                </div>
+                <div class="sim-field">
+                  <label for="sim-dst">Dest IP</label>
+                  <input id="sim-dst" type="text" value="10.0.1.50" />
+                </div>
+                <div class="sim-field">
+                  <label for="sim-port">Dest Port</label>
+                  <input id="sim-port" type="text" value="22" />
+                </div>
+                <div class="sim-field" style="flex:0;">
+                  <label>&nbsp;</label>
+                  <button type="button" class="btn btn-primary btn-sm" id="sim-test" style="height:32px;">Test</button>
+                </div>
+              </div>
+              <div class="sim-result none" id="sim-result">
+                Enter a packet and click Test to see which rule matches.
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ FIREWALLD (Image Builder) ═══════════ -->
+    <section id="panel-firewalld" class="hidden" role="tabpanel" aria-labelledby="tab-firewalld">
+      <div class="panel">
+        <span class="tag tag-firewalld">Image Builder · firewalld</span>
+        <h2>Firewall</h2>
+        <p class="lede">
+          Configure which services and ports are allowed when the image boots.
+          These settings are baked into the image — firewalld will be pre-configured on first boot.
+        </p>
+
+        <div class="mock-chrome">
+          <div class="mock-chrome-bar">
+            <span>Create image · Customizations · Firewall</span>
+            <span>Interactive</span>
+          </div>
+          <div class="mock-chrome-body">
+
+            <!-- Enabled services -->
+            <div class="fwd-section">
+              <p class="fwd-section-label">Enabled services</p>
+              <p class="zone-desc">Select services to allow through the firewall. Each service opens its standard port(s).</p>
+              <div class="service-grid" id="ib-services-grid"></div>
+              <div class="enabled-summary" id="ib-services-summary"></div>
+            </div>
+
+            <!-- Open ports -->
+            <div class="fwd-section">
+              <p class="fwd-section-label">Additional ports</p>
+              <p class="zone-desc">Open specific ports not covered by a named service above.</p>
+              <div class="custom-port-list" id="ib-ports-list"></div>
+              <div class="add-port-row" id="ib-add-port-row">
+                <input type="text" placeholder="Port (e.g. 8080)" data-port-input />
+                <select data-proto-select>
+                  <option value="tcp">TCP</option>
+                  <option value="udp">UDP</option>
+                </select>
+                <button type="button" class="btn btn-sm" data-add-port>Add port</button>
+              </div>
+            </div>
+
+            <!-- Disabled services -->
+            <div class="fwd-section" id="ib-disabled-section">
+              <button type="button" class="rich-rules-toggle" id="ib-disabled-toggle">
+                <span aria-hidden="true" id="ib-disabled-caret">▸</span> Explicitly disabled services
+              </button>
+              <div class="hidden" id="ib-disabled-content">
+                <p class="zone-desc" style="margin-top:0.5rem;">
+                  Services listed here will be explicitly turned off, overriding any distro defaults.
+                  Only needed if the base image enables something you want blocked.
+                </p>
+                <div id="ib-disabled-chips" class="custom-port-list" style="margin-bottom:0.5rem;"></div>
+                <div class="add-port-row">
+                  <select id="ib-disabled-select" style="width:160px;height:28px;padding:0 0.4rem;border:1px solid var(--proto-border);border-radius:4px;font:inherit;font-size:0.75rem;background:#fff;"></select>
+                  <button type="button" class="btn btn-sm" id="ib-disabled-add">Disable service</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Blueprint preview -->
+            <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px dashed var(--proto-border);">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+                <p class="fwd-section-label" style="margin:0;">Blueprint preview</p>
+                <div style="display:flex;gap:0.25rem;">
+                  <button type="button" class="btn btn-sm" id="ib-fmt-json" style="font-size:0.6875rem;" aria-pressed="true">JSON</button>
+                  <button type="button" class="btn btn-sm" id="ib-fmt-toml" style="font-size:0.6875rem;" aria-pressed="false">TOML</button>
+                </div>
+              </div>
+              <pre id="ib-blueprint-output" style="margin:0;padding:0.75rem;background:#151515;color:#f0f0f0;border-radius:4px;font-size:0.75rem;overflow-x:auto;white-space:pre-wrap;word-break:break-word;"></pre>
+              <div style="margin-top:0.5rem;">
+                <button type="button" class="btn btn-sm" id="ib-copy-blueprint">Copy blueprint</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ COMPACT A: Chip Select ═══════════ -->
+    <section id="panel-compact-a" class="hidden" role="tabpanel" aria-labelledby="tab-compact-a">
+      <div class="panel">
+        <span class="tag tag-firewalld">Image Builder · Option B</span>
+        <h2>Firewall</h2>
+        <p class="lede">Chip-select layout — click to toggle services on/off. Entire form fits in one viewport.</p>
+
+        <div class="mock-chrome">
+          <div class="mock-chrome-bar">
+            <span>Create image · Customizations · Firewall</span>
+            <span>Interactive</span>
+          </div>
+          <div class="mock-chrome-body">
+
+            <div class="field" style="margin-bottom:1.25rem;">
+              <label class="field-label">Additional ports</label>
+              <div class="port-inline" id="ca-ports">
+                <input type="text" id="ca-port-input" placeholder="Port:Protocol (e.g. 8080:tcp)" aria-label="Add port" />
+                <button type="button" class="btn btn-sm" id="ca-port-add">Add</button>
+              </div>
+              <span style="display:block;margin-top:0.25rem;font-size:0.75rem;color:var(--proto-muted);">Open specific ports not covered by a named service below.</span>
+            </div>
+
+            <div class="field" style="margin-bottom:1.25rem;">
+              <label class="field-label">Enabled services</label>
+              <p class="zone-desc" style="margin-bottom:0.5rem;">Click a service to enable it. Click again to remove.</p>
+              <div class="svc-chip-grid" id="ca-services"></div>
+              <div class="enabled-summary" id="ca-svc-summary"></div>
+            </div>
+
+            <div class="field">
+              <label class="field-label">Disabled services</label>
+              <p class="zone-desc" style="margin-bottom:0.5rem;">Override distro defaults. Only needed if the base image enables something you want blocked.</p>
+              <div class="svc-chip-grid" id="ca-disabled"></div>
+            </div>
+
+            <details class="blueprint-disclosure">
+              <summary>Blueprint preview</summary>
+              <pre id="ca-blueprint"></pre>
+            </details>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ COMPACT B: Checkbox Table ═══════════ -->
+    <section id="panel-compact-b" class="hidden" role="tabpanel" aria-labelledby="tab-compact-b">
+      <div class="panel">
+        <span class="tag tag-firewalld">Image Builder · Option C</span>
+        <h2>Firewall</h2>
+        <p class="lede">Checkbox table — scannable at a glance. One row per service, ports below.</p>
+
+        <div class="mock-chrome">
+          <div class="mock-chrome-bar">
+            <span>Create image · Customizations · Firewall</span>
+            <span>Interactive</span>
+          </div>
+          <div class="mock-chrome-body">
+
+            <div class="field" style="margin-bottom:1.25rem;">
+              <label class="field-label">Additional ports</label>
+              <div class="port-inline" id="cb-ports">
+                <input type="text" id="cb-port-input" placeholder="Port:Protocol (e.g. 3306:tcp)" aria-label="Add port" />
+                <button type="button" class="btn btn-sm" id="cb-port-add">Add</button>
+              </div>
+              <span style="display:block;margin-top:0.25rem;font-size:0.75rem;color:var(--proto-muted);">Open specific ports not covered by a named service below.</span>
+            </div>
+
+            <table class="svc-check-table" id="cb-table">
+              <thead>
+                <tr>
+                  <th style="width:36px;">On</th>
+                  <th>Service</th>
+                  <th>Port</th>
+                  <th style="width:50px;">Block</th>
+                </tr>
+              </thead>
+              <tbody id="cb-table-body"></tbody>
+            </table>
+
+            <details class="blueprint-disclosure">
+              <summary>Blueprint preview</summary>
+              <pre id="cb-blueprint"></pre>
+            </details>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════ COMPACT D: Multiselect Dropdown ═══════════ -->
+    <section id="panel-multiselect" class="hidden" role="tabpanel" aria-labelledby="tab-multiselect">
+      <div class="panel">
+        <span class="tag tag-firewalld">Image Builder · Option D</span>
+        <h2>Firewall</h2>
+        <p class="lede">Multiselect typeahead dropdowns — closest to the current Image Builder pattern, but with discoverability.</p>
+
+        <div class="mock-chrome">
+          <div class="mock-chrome-bar">
+            <span>Create image · Customizations · Firewall</span>
+            <span>Interactive</span>
+          </div>
+          <div class="mock-chrome-body">
+
+            <div class="field" style="margin-bottom:1.25rem;">
+              <label class="field-label" id="md-ports-label">Ports</label>
+              <div class="port-inline" id="md-ports">
+                <input type="text" id="md-port-input" placeholder="e.g. 8080:tcp, 443:udp" aria-label="Add port" style="flex:1;min-width:160px;" />
+                <button type="button" class="btn btn-sm" id="md-port-add">Add</button>
+              </div>
+              <span style="display:block;margin-top:0.25rem;font-size:0.75rem;color:var(--proto-muted);">Enter port:protocol and press Add or Enter. Examples: 8080:tcp, 53:udp</span>
+            </div>
+
+            <div class="field" style="margin-bottom:1.25rem;">
+              <label class="field-label" id="md-enabled-label">Enabled services</label>
+              <div class="ms-wrapper" id="md-enabled-wrapper">
+                <div class="ms-toggle" id="md-enabled-toggle">
+                  <span id="md-enabled-chips"></span>
+                  <input type="text" class="ms-input" id="md-enabled-input" placeholder="Search services…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="md-enabled-menu" aria-labelledby="md-enabled-label" />
+                  <div class="ms-utilities">
+                    <button type="button" class="ms-util-btn" id="md-enabled-clear" aria-label="Clear all" hidden>×</button>
+                    <button type="button" class="ms-util-btn" id="md-enabled-caret" aria-label="Toggle menu">▾</button>
+                  </div>
+                </div>
+                <div class="ms-menu hidden" id="md-enabled-menu" role="listbox"></div>
+              </div>
+              <span style="display:block;margin-top:0.25rem;font-size:0.75rem;color:var(--proto-muted);">Select services to allow through the firewall on first boot.</span>
+            </div>
+
+            <div class="field">
+              <label class="field-label" id="md-disabled-label">Disabled services</label>
+              <div class="ms-wrapper" id="md-disabled-wrapper">
+                <div class="ms-toggle" id="md-disabled-toggle">
+                  <span id="md-disabled-chips"></span>
+                  <input type="text" class="ms-input" id="md-disabled-input" placeholder="Search services to block…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="md-disabled-menu" aria-labelledby="md-disabled-label" />
+                  <div class="ms-utilities">
+                    <button type="button" class="ms-util-btn" id="md-disabled-clear" aria-label="Clear all" hidden>×</button>
+                    <button type="button" class="ms-util-btn" id="md-disabled-caret" aria-label="Toggle menu">▾</button>
+                  </div>
+                </div>
+                <div class="ms-menu hidden" id="md-disabled-menu" role="listbox"></div>
+              </div>
+              <span style="display:block;margin-top:0.25rem;font-size:0.75rem;color:var(--proto-muted);">Explicitly block services that the base image may enable by default.</span>
+            </div>
+
+            <details class="blueprint-disclosure">
+              <summary>Blueprint preview</summary>
+              <pre id="md-blueprint"></pre>
+            </details>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    /* ═══════════ Tab switching ═══════════ */
+    const tabs = document.querySelectorAll('.proto-nav [role="tab"]');
+    const panels = {
+      overview: document.getElementById('panel-overview'),
+      iptables: document.getElementById('panel-iptables'),
+      firewalld: document.getElementById('panel-firewalld'),
+      compactA: document.getElementById('panel-compact-a'),
+      compactB: document.getElementById('panel-compact-b'),
+      multiselect: document.getElementById('panel-multiselect'),
+    };
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const key = tab.dataset.panel;
+        tabs.forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
+        Object.entries(panels).forEach(([k, el]) => el.classList.toggle('hidden', k !== key));
+      });
+    });
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    /* ═══════════════════════════════════════
+       IPTABLES RULE BUILDER
+       ═══════════════════════════════════════ */
+
+    let iptRules = [
+      { dir: 'IN', proto: 'TCP', src: '0.0.0.0/0', dst: '0.0.0.0/0', port: '22', action: 'ACCEPT' },
+      { dir: 'IN', proto: 'TCP', src: '0.0.0.0/0', dst: '0.0.0.0/0', port: '80', action: 'ACCEPT' },
+      { dir: 'IN', proto: 'TCP', src: '0.0.0.0/0', dst: '0.0.0.0/0', port: '443', action: 'ACCEPT' },
+      { dir: 'IN', proto: 'ICMP', src: '0.0.0.0/0', dst: '0.0.0.0/0', port: '*', action: 'ACCEPT' },
+      { dir: 'IN', proto: 'TCP', src: '192.168.0.0/16', dst: '0.0.0.0/0', port: '3306', action: 'ACCEPT' },
+      { dir: 'IN', proto: 'ANY', src: '10.99.0.0/24', dst: '0.0.0.0/0', port: '*', action: 'DROP' },
+    ];
+
+    const iptBody = document.getElementById('ipt-rules-body');
+    const iptDefaultPolicy = document.getElementById('ipt-default-policy');
+    const iptDefaultPolicyLabel = document.getElementById('ipt-default-policy-label');
+
+    iptDefaultPolicy.addEventListener('change', () => {
+      iptDefaultPolicyLabel.textContent = iptDefaultPolicy.value;
+    });
+
+    let dragSrcIndex = null;
+
+    function actionBadgeClass(action) {
+      return action === 'ACCEPT' ? 'action-accept' : action === 'DROP' ? 'action-drop' : 'action-reject';
+    }
+
+    function renderIptRules() {
+      iptBody.innerHTML = '';
+      iptRules.forEach((rule, index) => {
+        const tr = document.createElement('tr');
+        tr.draggable = true;
+        tr.dataset.index = index;
+
+        tr.innerHTML = `
+          <td><span class="drag-handle" aria-label="Drag to reorder">⠿</span></td>
+          <td class="rule-num">${index + 1}</td>
+          <td>${escapeHtml(rule.dir)}</td>
+          <td>${escapeHtml(rule.proto)}</td>
+          <td style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.75rem;">${escapeHtml(rule.src)}</td>
+          <td style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.75rem;">${escapeHtml(rule.dst)}</td>
+          <td style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.75rem;">${escapeHtml(rule.port)}</td>
+          <td><span class="action-badge ${actionBadgeClass(rule.action)}">${escapeHtml(rule.action)}</span></td>
+          <td>
+            <button type="button" class="btn-icon-sm danger" aria-label="Delete rule ${index + 1}" data-delete="${index}">×</button>
+          </td>
+        `;
+
+        tr.addEventListener('dragstart', (e) => {
+          dragSrcIndex = index;
+          tr.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+        });
+
+        tr.addEventListener('dragend', () => {
+          tr.classList.remove('dragging');
+          iptBody.querySelectorAll('tr').forEach((r) => r.classList.remove('drag-over'));
+          dragSrcIndex = null;
+        });
+
+        tr.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          iptBody.querySelectorAll('tr').forEach((r) => r.classList.remove('drag-over'));
+          tr.classList.add('drag-over');
+        });
+
+        tr.addEventListener('drop', (e) => {
+          e.preventDefault();
+          tr.classList.remove('drag-over');
+          if (dragSrcIndex === null || dragSrcIndex === index) return;
+          const moved = iptRules.splice(dragSrcIndex, 1)[0];
+          iptRules.splice(index, 0, moved);
+          renderIptRules();
+        });
+
+        tr.querySelector('[data-delete]').addEventListener('click', () => {
+          iptRules.splice(index, 1);
+          renderIptRules();
+        });
+
+        iptBody.appendChild(tr);
+      });
+    }
+
+    renderIptRules();
+
+    // Add rule form
+    const iptForm = document.getElementById('ipt-add-form');
+    document.getElementById('ipt-toggle-form').addEventListener('click', () => iptForm.classList.remove('hidden'));
+    document.getElementById('ipt-close-form').addEventListener('click', () => iptForm.classList.add('hidden'));
+    document.getElementById('ipt-cancel-rule').addEventListener('click', () => iptForm.classList.add('hidden'));
+
+    document.getElementById('ipt-add-rule').addEventListener('click', () => {
+      iptRules.push({
+        dir: document.getElementById('ipt-new-dir').value,
+        proto: document.getElementById('ipt-new-proto').value,
+        src: document.getElementById('ipt-new-src').value.trim() || '0.0.0.0/0',
+        dst: document.getElementById('ipt-new-dst').value.trim() || '0.0.0.0/0',
+        port: document.getElementById('ipt-new-port').value.trim() || '*',
+        action: document.getElementById('ipt-new-action').value,
+      });
+      renderIptRules();
+      iptForm.classList.add('hidden');
+      document.getElementById('ipt-new-src').value = '';
+      document.getElementById('ipt-new-dst').value = '';
+      document.getElementById('ipt-new-port').value = '';
+    });
+
+    // Traffic simulator
+    document.getElementById('sim-test').addEventListener('click', () => {
+      const proto = document.getElementById('sim-proto').value;
+      const port = document.getElementById('sim-port').value.trim();
+      const resultEl = document.getElementById('sim-result');
+
+      let matchedIndex = -1;
+      for (let i = 0; i < iptRules.length; i++) {
+        const r = iptRules[i];
+        if (r.dir !== 'IN') continue;
+        const protoMatch = r.proto === 'ANY' || r.proto === proto;
+        const portMatch = r.port === '*' || r.port === port;
+        if (protoMatch && portMatch) {
+          matchedIndex = i;
+          break;
+        }
+      }
+
+      if (matchedIndex >= 0) {
+        const r = iptRules[matchedIndex];
+        const cls = r.action.toLowerCase();
+        resultEl.className = `sim-result ${cls}`;
+        resultEl.innerHTML = `<strong>Rule #${matchedIndex + 1} matched</strong> → ${r.action}<br>` +
+          `<span style="font-size:0.8125rem;">${r.proto} ${r.src} → ${r.dst} port ${r.port}</span>`;
+
+        iptBody.querySelectorAll('tr').forEach((tr, idx) => {
+          tr.style.background = idx === matchedIndex ? 'rgba(0, 102, 204, 0.08)' : '';
+        });
+      } else {
+        const policy = iptDefaultPolicy.value;
+        const cls = policy.toLowerCase();
+        resultEl.className = `sim-result ${cls}`;
+        resultEl.innerHTML = `<strong>No rule matched</strong> → Default policy: ${policy}`;
+        iptBody.querySelectorAll('tr').forEach((tr) => { tr.style.background = ''; });
+      }
+    });
+
+
+    /* ═══════════════════════════════════════
+       FIREWALLD — IMAGE BUILDER BLUEPRINT FORM
+       ═══════════════════════════════════════ */
+
+    const SERVICES = [
+      { name: 'SSH', port: '22/tcp', key: 'ssh' },
+      { name: 'HTTP', port: '80/tcp', key: 'http' },
+      { name: 'HTTPS', port: '443/tcp', key: 'https' },
+      { name: 'DNS', port: '53/tcp+udp', key: 'dns' },
+      { name: 'DHCP Client', port: '68/udp', key: 'dhcp' },
+      { name: 'DHCPv6 Client', port: '546/udp', key: 'dhcpv6-client' },
+      { name: 'Cockpit', port: '9090/tcp', key: 'cockpit' },
+      { name: 'NFS', port: '2049/tcp', key: 'nfs' },
+      { name: 'Samba', port: '445/tcp', key: 'samba' },
+      { name: 'mDNS', port: '5353/udp', key: 'mdns' },
+    ];
+
+    let ibEnabled = { ssh: true, cockpit: true };
+    let ibDisabled = ['dhcpv6-client'];
+    let ibPorts = [{ port: '8080', proto: 'tcp' }];
+    let ibDisabledOpen = false;
+    let ibFormat = 'json';
+
+    function renderIbServices() {
+      const grid = document.getElementById('ib-services-grid');
+      grid.innerHTML = '';
+
+      SERVICES.forEach((svc) => {
+        const row = document.createElement('div');
+        row.className = 'service-row';
+
+        const info = document.createElement('div');
+        info.className = 'service-info';
+        info.innerHTML = `<span class="service-name">${escapeHtml(svc.name)}</span><span class="service-port">${escapeHtml(svc.port)}</span>`;
+
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'toggle';
+        toggle.setAttribute('role', 'switch');
+        toggle.setAttribute('aria-checked', String(!!ibEnabled[svc.key]));
+        toggle.setAttribute('aria-label', `Enable ${svc.name}`);
+
+        toggle.addEventListener('click', () => {
+          if (ibEnabled[svc.key]) {
+            delete ibEnabled[svc.key];
+          } else {
+            ibEnabled[svc.key] = true;
+            ibDisabled = ibDisabled.filter((d) => d !== svc.key);
+          }
+          renderIbAll();
+        });
+
+        row.appendChild(info);
+        row.appendChild(toggle);
+        grid.appendChild(row);
+      });
+
+      const enabledCount = Object.keys(ibEnabled).length;
+      document.getElementById('ib-services-summary').textContent =
+        `${enabledCount} service${enabledCount !== 1 ? 's' : ''} will be enabled on first boot`;
+    }
+
+    function renderIbPorts() {
+      const list = document.getElementById('ib-ports-list');
+      list.innerHTML = '';
+
+      if (!ibPorts.length) {
+        const empty = document.createElement('span');
+        empty.className = 'empty-state-text';
+        empty.textContent = 'No additional ports. Add one if your image needs a non-standard port open.';
+        list.appendChild(empty);
+      }
+
+      ibPorts.forEach((cp, index) => {
+        const chip = document.createElement('span');
+        chip.className = 'port-chip';
+        chip.innerHTML = `${escapeHtml(cp.port)}/${escapeHtml(cp.proto)} <button type="button" class="remove-port" aria-label="Remove port ${cp.port}">×</button>`;
+        chip.querySelector('.remove-port').addEventListener('click', () => {
+          ibPorts.splice(index, 1);
+          renderIbAll();
+        });
+        list.appendChild(chip);
+      });
+    }
+
+    function renderIbDisabled() {
+      const chips = document.getElementById('ib-disabled-chips');
+      chips.innerHTML = '';
+
+      if (!ibDisabled.length) {
+        const empty = document.createElement('span');
+        empty.className = 'empty-state-text';
+        empty.textContent = 'No services explicitly disabled.';
+        chips.appendChild(empty);
+      }
+
+      ibDisabled.forEach((key, index) => {
+        const svc = SERVICES.find((s) => s.key === key);
+        const label = svc ? svc.name : key;
+        const chip = document.createElement('span');
+        chip.className = 'port-chip';
+        chip.style.background = '#faeae8';
+        chip.style.color = 'var(--proto-danger)';
+        chip.innerHTML = `${escapeHtml(label)} <button type="button" class="remove-port" style="color:var(--proto-danger);" aria-label="Remove ${label} from disabled list">×</button>`;
+        chip.querySelector('.remove-port').addEventListener('click', () => {
+          ibDisabled.splice(index, 1);
+          renderIbAll();
+        });
+        chips.appendChild(chip);
+      });
+
+      // Populate the "disable" dropdown with services not already enabled or disabled
+      const sel = document.getElementById('ib-disabled-select');
+      sel.innerHTML = '';
+      const candidates = SERVICES.filter((s) => !ibEnabled[s.key] && !ibDisabled.includes(s.key));
+      if (!candidates.length) {
+        const opt = document.createElement('option');
+        opt.textContent = 'No services available';
+        opt.disabled = true;
+        sel.appendChild(opt);
+      }
+      candidates.forEach((svc) => {
+        const opt = document.createElement('option');
+        opt.value = svc.key;
+        opt.textContent = svc.name;
+        sel.appendChild(opt);
+      });
+    }
+
+    function renderIbBlueprint() {
+      const output = document.getElementById('ib-blueprint-output');
+      const enabledKeys = Object.keys(ibEnabled).filter((k) => ibEnabled[k]);
+      const portStrings = ibPorts.map((p) => `${p.port}:${p.proto}`);
+
+      if (ibFormat === 'json') {
+        const obj = { customizations: { firewall: {} } };
+        if (portStrings.length) obj.customizations.firewall.ports = portStrings;
+        obj.customizations.firewall.services = {};
+        if (enabledKeys.length) obj.customizations.firewall.services.enabled = enabledKeys;
+        if (ibDisabled.length) obj.customizations.firewall.services.disabled = [...ibDisabled];
+        output.textContent = JSON.stringify(obj, null, 2);
+      } else {
+        let toml = '[customizations.firewall]\n';
+        if (portStrings.length) {
+          toml += `ports = [${portStrings.map((p) => `"${p}"`).join(', ')}]\n`;
+        }
+        toml += '\n[customizations.firewall.services]\n';
+        if (enabledKeys.length) {
+          toml += `enabled = [${enabledKeys.map((k) => `"${k}"`).join(', ')}]\n`;
+        }
+        if (ibDisabled.length) {
+          toml += `disabled = [${ibDisabled.map((k) => `"${k}"`).join(', ')}]\n`;
+        }
+        output.textContent = toml;
+      }
+    }
+
+    function renderIbAll() {
+      renderIbServices();
+      renderIbPorts();
+      renderIbDisabled();
+      renderIbBlueprint();
+    }
+
+    // Add port
+    document.getElementById('ib-add-port-row').querySelector('[data-add-port]').addEventListener('click', () => {
+      const row = document.getElementById('ib-add-port-row');
+      const portInput = row.querySelector('[data-port-input]');
+      const protoSelect = row.querySelector('[data-proto-select]');
+      const port = portInput.value.trim();
+      if (!port) return;
+      ibPorts.push({ port, proto: protoSelect.value });
+      portInput.value = '';
+      renderIbAll();
+    });
+
+    // Disabled services toggle
+    document.getElementById('ib-disabled-toggle').addEventListener('click', () => {
+      ibDisabledOpen = !ibDisabledOpen;
+      document.getElementById('ib-disabled-content').classList.toggle('hidden', !ibDisabledOpen);
+      document.getElementById('ib-disabled-caret').textContent = ibDisabledOpen ? '▾' : '▸';
+    });
+
+    // Add to disabled
+    document.getElementById('ib-disabled-add').addEventListener('click', () => {
+      const sel = document.getElementById('ib-disabled-select');
+      const key = sel.value;
+      if (!key || ibDisabled.includes(key)) return;
+      ibDisabled.push(key);
+      delete ibEnabled[key];
+      renderIbAll();
+    });
+
+    // Format toggle
+    document.getElementById('ib-fmt-json').addEventListener('click', () => {
+      ibFormat = 'json';
+      document.getElementById('ib-fmt-json').setAttribute('aria-pressed', 'true');
+      document.getElementById('ib-fmt-toml').setAttribute('aria-pressed', 'false');
+      renderIbBlueprint();
+    });
+
+    document.getElementById('ib-fmt-toml').addEventListener('click', () => {
+      ibFormat = 'toml';
+      document.getElementById('ib-fmt-toml').setAttribute('aria-pressed', 'true');
+      document.getElementById('ib-fmt-json').setAttribute('aria-pressed', 'false');
+      renderIbBlueprint();
+    });
+
+    // Copy blueprint
+    document.getElementById('ib-copy-blueprint').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(document.getElementById('ib-blueprint-output').textContent);
+        const btn = document.getElementById('ib-copy-blueprint');
+        const prev = btn.textContent;
+        btn.textContent = 'Copied';
+        setTimeout(() => { btn.textContent = prev; }, 1200);
+      } catch {
+        alert('Could not copy — select the text manually.');
+      }
+    });
+
+    renderIbAll();
+
+
+    /* ═══════════════════════════════════════
+       COMPACT A — CHIP SELECT
+       ═══════════════════════════════════════ */
+
+    let caEnabled = { ssh: true, cockpit: true };
+    let caDisabled = ['dhcpv6-client'];
+    let caPorts = [{ port: '8080', proto: 'tcp' }];
+
+    function renderCompactA() {
+      // Services as clickable chips
+      const grid = document.getElementById('ca-services');
+      grid.innerHTML = '';
+      SERVICES.forEach((svc) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'svc-chip' + (caEnabled[svc.key] ? ' selected' : '');
+        chip.innerHTML = `${escapeHtml(svc.name)} <span class="chip-port">${escapeHtml(svc.port)}</span>`;
+        chip.addEventListener('click', () => {
+          if (caEnabled[svc.key]) {
+            delete caEnabled[svc.key];
+          } else {
+            caEnabled[svc.key] = true;
+            caDisabled = caDisabled.filter((d) => d !== svc.key);
+          }
+          renderCompactA();
+        });
+        grid.appendChild(chip);
+      });
+
+      const count = Object.keys(caEnabled).length;
+      document.getElementById('ca-svc-summary').textContent =
+        `${count} service${count !== 1 ? 's' : ''} enabled`;
+
+      // Ports as inline chips
+      const portWrap = document.getElementById('ca-ports');
+      portWrap.querySelectorAll('.port-chip').forEach((c) => c.remove());
+      const input = document.getElementById('ca-port-input');
+      caPorts.forEach((cp, i) => {
+        const chip = document.createElement('span');
+        chip.className = 'port-chip';
+        chip.innerHTML = `${escapeHtml(cp.port)}/${escapeHtml(cp.proto)} <button type="button" class="remove-port" aria-label="Remove port ${cp.port}">×</button>`;
+        chip.querySelector('.remove-port').addEventListener('click', () => {
+          caPorts.splice(i, 1);
+          renderCompactA();
+        });
+        portWrap.insertBefore(chip, input);
+      });
+
+      // Disabled as chips
+      const disGrid = document.getElementById('ca-disabled');
+      disGrid.innerHTML = '';
+      SERVICES.forEach((svc) => {
+        if (!caEnabled[svc.key]) {
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          const isDisabled = caDisabled.includes(svc.key);
+          chip.className = 'svc-chip' + (isDisabled ? ' disabled-chip' : '');
+          chip.textContent = svc.name;
+          chip.title = isDisabled ? 'Click to un-block' : 'Click to explicitly block';
+          chip.addEventListener('click', () => {
+            if (isDisabled) {
+              caDisabled = caDisabled.filter((d) => d !== svc.key);
+            } else {
+              caDisabled.push(svc.key);
+            }
+            renderCompactA();
+          });
+          disGrid.appendChild(chip);
+        }
+      });
+      if (!disGrid.children.length) {
+        disGrid.innerHTML = '<span class="empty-state-text">All services are enabled — nothing to disable.</span>';
+      }
+
+      // Blueprint
+      const enabledKeys = Object.keys(caEnabled).filter((k) => caEnabled[k]);
+      const portStrings = caPorts.map((p) => `${p.port}:${p.proto}`);
+      const obj = { customizations: { firewall: {} } };
+      if (portStrings.length) obj.customizations.firewall.ports = portStrings;
+      obj.customizations.firewall.services = {};
+      if (enabledKeys.length) obj.customizations.firewall.services.enabled = enabledKeys;
+      if (caDisabled.length) obj.customizations.firewall.services.disabled = [...caDisabled];
+      document.getElementById('ca-blueprint').textContent = JSON.stringify(obj, null, 2);
+    }
+
+    document.getElementById('ca-port-add').addEventListener('click', () => {
+      const input = document.getElementById('ca-port-input');
+      const raw = input.value.trim();
+      if (!raw) return;
+      const [port, proto] = raw.includes(':') ? raw.split(':') : [raw, 'tcp'];
+      caPorts.push({ port, proto: proto || 'tcp' });
+      input.value = '';
+      renderCompactA();
+    });
+
+    document.getElementById('ca-port-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); document.getElementById('ca-port-add').click(); }
+    });
+
+    renderCompactA();
+
+
+    /* ═══════════════════════════════════════
+       COMPACT B — CHECKBOX TABLE
+       ═══════════════════════════════════════ */
+
+    let cbEnabled = { ssh: true, cockpit: true };
+    let cbDisabled = ['dhcpv6-client'];
+    let cbPorts = [{ port: '8080', proto: 'tcp' }];
+
+    function renderCompactB() {
+      const tbody = document.getElementById('cb-table-body');
+      tbody.innerHTML = '';
+
+      SERVICES.forEach((svc) => {
+        const tr = document.createElement('tr');
+        const isOn = !!cbEnabled[svc.key];
+        const isBlocked = cbDisabled.includes(svc.key);
+
+        // Enable checkbox
+        const tdOn = document.createElement('td');
+        const cbOn = document.createElement('input');
+        cbOn.type = 'checkbox';
+        cbOn.checked = isOn;
+        cbOn.setAttribute('aria-label', `Enable ${svc.name}`);
+        cbOn.addEventListener('change', () => {
+          if (cbOn.checked) {
+            cbEnabled[svc.key] = true;
+            cbDisabled = cbDisabled.filter((d) => d !== svc.key);
+          } else {
+            delete cbEnabled[svc.key];
+          }
+          renderCompactB();
+        });
+        tdOn.appendChild(cbOn);
+        tr.appendChild(tdOn);
+
+        // Service name
+        const tdName = document.createElement('td');
+        tdName.style.fontWeight = isOn ? '600' : '400';
+        tdName.style.color = isBlocked ? 'var(--proto-danger)' : isOn ? 'var(--proto-text)' : 'var(--proto-muted)';
+        tdName.textContent = svc.name;
+        tr.appendChild(tdName);
+
+        // Port
+        const tdPort = document.createElement('td');
+        tdPort.className = 'port-cell';
+        tdPort.textContent = svc.port;
+        tr.appendChild(tdPort);
+
+        // Block checkbox
+        const tdBlock = document.createElement('td');
+        const cbBlock = document.createElement('input');
+        cbBlock.type = 'checkbox';
+        cbBlock.checked = isBlocked;
+        cbBlock.disabled = isOn;
+        cbBlock.setAttribute('aria-label', `Block ${svc.name}`);
+        cbBlock.style.accentColor = 'var(--proto-danger)';
+        if (isOn) cbBlock.style.opacity = '0.3';
+        cbBlock.addEventListener('change', () => {
+          if (cbBlock.checked) {
+            cbDisabled.push(svc.key);
+            delete cbEnabled[svc.key];
+          } else {
+            cbDisabled = cbDisabled.filter((d) => d !== svc.key);
+          }
+          renderCompactB();
+        });
+        tdBlock.appendChild(cbBlock);
+        tr.appendChild(tdBlock);
+
+        tbody.appendChild(tr);
+      });
+
+      // Ports
+      const portWrap = document.getElementById('cb-ports');
+      portWrap.querySelectorAll('.port-chip').forEach((c) => c.remove());
+      const input = document.getElementById('cb-port-input');
+      cbPorts.forEach((cp, i) => {
+        const chip = document.createElement('span');
+        chip.className = 'port-chip';
+        chip.innerHTML = `${escapeHtml(cp.port)}/${escapeHtml(cp.proto)} <button type="button" class="remove-port" aria-label="Remove port ${cp.port}">×</button>`;
+        chip.querySelector('.remove-port').addEventListener('click', () => {
+          cbPorts.splice(i, 1);
+          renderCompactB();
+        });
+        portWrap.insertBefore(chip, input);
+      });
+
+      // Blueprint
+      const enabledKeys = Object.keys(cbEnabled).filter((k) => cbEnabled[k]);
+      const portStrings = cbPorts.map((p) => `${p.port}:${p.proto}`);
+      const obj = { customizations: { firewall: {} } };
+      if (portStrings.length) obj.customizations.firewall.ports = portStrings;
+      obj.customizations.firewall.services = {};
+      if (enabledKeys.length) obj.customizations.firewall.services.enabled = enabledKeys;
+      if (cbDisabled.length) obj.customizations.firewall.services.disabled = [...cbDisabled];
+      document.getElementById('cb-blueprint').textContent = JSON.stringify(obj, null, 2);
+    }
+
+    document.getElementById('cb-port-add').addEventListener('click', () => {
+      const input = document.getElementById('cb-port-input');
+      const raw = input.value.trim();
+      if (!raw) return;
+      const [port, proto] = raw.includes(':') ? raw.split(':') : [raw, 'tcp'];
+      cbPorts.push({ port, proto: proto || 'tcp' });
+      input.value = '';
+      renderCompactB();
+    });
+
+    document.getElementById('cb-port-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); document.getElementById('cb-port-add').click(); }
+    });
+
+    renderCompactB();
+
+
+    /* ═══════════════════════════════════════
+       COMPACT D — MULTISELECT DROPDOWN
+       ═══════════════════════════════════════ */
+
+    function createMultiSelectField({
+      wrapper, toggle, chipsEl, input, menu, clearBtn, caretBtn,
+      options, selected, isDanger, onUpdate,
+      otherSelected,
+    }) {
+      let isOpen = false;
+      let filter = '';
+      let focusIdx = -1;
+
+      function filtered() {
+        const q = filter.trim().toLowerCase();
+        const other = otherSelected ? otherSelected() : [];
+        return options.filter((o) =>
+          (!q || o.name.toLowerCase().includes(q) || o.key.toLowerCase().includes(q)) &&
+          !other.includes(o.key)
+        );
+      }
+
+      function setOpen(v) {
+        isOpen = v;
+        menu.classList.toggle('hidden', !isOpen);
+        toggle.classList.toggle('is-open', isOpen);
+        input.setAttribute('aria-expanded', String(isOpen));
+        if (!isOpen) focusIdx = -1;
+        if (isOpen) renderMenu();
+      }
+
+      function renderChips() {
+        chipsEl.innerHTML = '';
+        selected.forEach((key) => {
+          const svc = options.find((o) => o.key === key);
+          const chip = document.createElement('span');
+          chip.className = 'ms-chip' + (isDanger ? ' is-danger' : '');
+          const label = document.createElement('span');
+          label.textContent = svc ? svc.name : key;
+          const close = document.createElement('button');
+          close.type = 'button';
+          close.className = 'ms-chip-close';
+          close.setAttribute('aria-label', `Remove ${svc ? svc.name : key}`);
+          close.textContent = '×';
+          close.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const idx = selected.indexOf(key);
+            if (idx >= 0) selected.splice(idx, 1);
+            render();
+            input.focus();
+          });
+          chip.appendChild(label);
+          chip.appendChild(close);
+          chipsEl.appendChild(chip);
+        });
+        clearBtn.hidden = selected.length === 0;
+      }
+
+      function renderMenu() {
+        const list = filtered();
+        menu.innerHTML = '';
+        if (!list.length) {
+          const empty = document.createElement('div');
+          empty.className = 'ms-empty';
+          empty.textContent = filter ? 'No matching services' : 'All services assigned';
+          menu.appendChild(empty);
+          return;
+        }
+        list.forEach((svc, i) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'ms-option';
+          if (selected.includes(svc.key)) btn.classList.add('is-selected');
+          if (i === focusIdx) btn.classList.add('is-focused');
+
+          const labelSpan = document.createElement('span');
+          labelSpan.className = 'ms-option-label';
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = svc.name;
+          const portSpan = document.createElement('span');
+          portSpan.className = 'ms-option-port';
+          portSpan.textContent = svc.port;
+          labelSpan.appendChild(nameSpan);
+          labelSpan.appendChild(portSpan);
+          btn.appendChild(labelSpan);
+
+          if (selected.includes(svc.key)) {
+            const check = document.createElement('span');
+            check.className = 'ms-check';
+            check.textContent = '✓';
+            btn.appendChild(check);
+          }
+
+          btn.addEventListener('mousedown', (e) => e.preventDefault());
+          btn.addEventListener('click', () => selectValue(svc.key));
+          menu.appendChild(btn);
+        });
+      }
+
+      let skipClose = false;
+
+      function selectValue(key) {
+        const idx = selected.indexOf(key);
+        if (idx >= 0) {
+          selected.splice(idx, 1);
+        } else {
+          selected.push(key);
+        }
+        filter = '';
+        input.value = '';
+        focusIdx = -1;
+        skipClose = true;
+        render();
+        setOpen(true);
+        input.focus();
+        requestAnimationFrame(() => { skipClose = false; });
+      }
+
+      function render() {
+        renderChips();
+        if (isOpen) renderMenu();
+        onUpdate();
+      }
+
+      toggle.addEventListener('click', (e) => {
+        if (e.target.closest('button')) return;
+        input.focus();
+        setOpen(true);
+      });
+
+      caretBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setOpen(!isOpen);
+        input.focus();
+      });
+
+      clearBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selected.length = 0;
+        filter = '';
+        input.value = '';
+        render();
+        setOpen(false);
+        input.focus();
+      });
+
+      input.addEventListener('focus', () => setOpen(true));
+      input.addEventListener('input', () => {
+        filter = input.value;
+        focusIdx = -1;
+        setOpen(true);
+        renderMenu();
+      });
+
+      input.addEventListener('keydown', (e) => {
+        const list = filtered();
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (!isOpen) setOpen(true);
+          focusIdx = focusIdx < list.length - 1 ? focusIdx + 1 : 0;
+          renderMenu();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (!isOpen) setOpen(true);
+          focusIdx = focusIdx > 0 ? focusIdx - 1 : list.length - 1;
+          renderMenu();
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (focusIdx >= 0 && list[focusIdx]) {
+            selectValue(list[focusIdx].key);
+          }
+        } else if (e.key === 'Escape') {
+          setOpen(false);
+        } else if (e.key === 'Backspace' && !input.value && selected.length) {
+          selected.pop();
+          render();
+        }
+      });
+
+      document.addEventListener('click', (e) => {
+        if (skipClose) return;
+        if (!wrapper.contains(e.target)) setOpen(false);
+      });
+
+      render();
+    }
+
+    const mdEnabled = ['ssh', 'cockpit'];
+    const mdDisabled = ['dhcpv6-client'];
+    let mdPorts = [{ port: '8080', proto: 'tcp' }];
+
+    function renderMdBlueprint() {
+      const portStrings = mdPorts.map((p) => `${p.port}:${p.proto}`);
+      const obj = { customizations: { firewall: {} } };
+      if (portStrings.length) obj.customizations.firewall.ports = portStrings;
+      obj.customizations.firewall.services = {};
+      if (mdEnabled.length) obj.customizations.firewall.services.enabled = [...mdEnabled];
+      if (mdDisabled.length) obj.customizations.firewall.services.disabled = [...mdDisabled];
+      document.getElementById('md-blueprint').textContent = JSON.stringify(obj, null, 2);
+    }
+
+    function renderMdPorts() {
+      const wrap = document.getElementById('md-ports');
+      wrap.querySelectorAll('.port-chip').forEach((c) => c.remove());
+      const input = document.getElementById('md-port-input');
+      mdPorts.forEach((cp, i) => {
+        const chip = document.createElement('span');
+        chip.className = 'port-chip';
+        chip.innerHTML = `${escapeHtml(cp.port)}/${escapeHtml(cp.proto)} <button type="button" class="remove-port" aria-label="Remove port ${cp.port}">×</button>`;
+        chip.querySelector('.remove-port').addEventListener('click', () => {
+          mdPorts.splice(i, 1);
+          renderMdPorts();
+          renderMdBlueprint();
+        });
+        wrap.insertBefore(chip, input);
+      });
+    }
+
+    document.getElementById('md-port-add').addEventListener('click', () => {
+      const input = document.getElementById('md-port-input');
+      const raw = input.value.trim();
+      if (!raw) return;
+      const [port, proto] = raw.includes(':') ? raw.split(':') : [raw, 'tcp'];
+      mdPorts.push({ port, proto: proto || 'tcp' });
+      input.value = '';
+      renderMdPorts();
+      renderMdBlueprint();
+    });
+
+    document.getElementById('md-port-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); document.getElementById('md-port-add').click(); }
+    });
+
+    createMultiSelectField({
+      wrapper: document.getElementById('md-enabled-wrapper'),
+      toggle: document.getElementById('md-enabled-toggle'),
+      chipsEl: document.getElementById('md-enabled-chips'),
+      input: document.getElementById('md-enabled-input'),
+      menu: document.getElementById('md-enabled-menu'),
+      clearBtn: document.getElementById('md-enabled-clear'),
+      caretBtn: document.getElementById('md-enabled-caret'),
+      options: SERVICES,
+      selected: mdEnabled,
+      isDanger: false,
+      otherSelected: () => mdDisabled,
+      onUpdate: () => { renderMdBlueprint(); },
+    });
+
+    createMultiSelectField({
+      wrapper: document.getElementById('md-disabled-wrapper'),
+      toggle: document.getElementById('md-disabled-toggle'),
+      chipsEl: document.getElementById('md-disabled-chips'),
+      input: document.getElementById('md-disabled-input'),
+      menu: document.getElementById('md-disabled-menu'),
+      clearBtn: document.getElementById('md-disabled-clear'),
+      caretBtn: document.getElementById('md-disabled-caret'),
+      options: SERVICES,
+      selected: mdDisabled,
+      isDanger: true,
+      otherSelected: () => mdEnabled,
+      onUpdate: () => { renderMdBlueprint(); },
+    });
+
+    renderMdPorts();
+    renderMdBlueprint();
+  </script>
+</body>
+</html>

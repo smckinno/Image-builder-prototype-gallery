@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Builder — Compliance policy details popover</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@patternfly/patternfly@6.2.0/patternfly.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@patternfly/patternfly@6.2.0/patternfly-addons.css" />
+  <style>
+    :root {
+      --proto-bg: #f0f0f0;
+      --proto-panel: #fff;
+      --proto-border: #c7c7c7;
+      --proto-blue: #0066cc;
+      --proto-text: #151515;
+      --proto-muted: #6a6e73;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Red Hat Text", "RedHatText", Helvetica, Arial, sans-serif;
+      background: var(--proto-bg);
+      color: var(--proto-text);
+      min-height: 100vh;
+    }
+
+    .proto-header {
+      background: #151515;
+      color: #fff;
+      padding: 1rem 1.5rem;
+    }
+
+    .proto-header h1 {
+      margin: 0;
+      font-size: 1.125rem;
+      font-weight: 500;
+    }
+
+    .proto-header p {
+      margin: 0.25rem 0 0;
+      font-size: 0.875rem;
+      color: #c7c7c7;
+    }
+
+    .proto-main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    .panel {
+      background: var(--proto-panel);
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      padding: 1.5rem;
+    }
+
+    .panel h2 {
+      margin: 0 0 0.35rem;
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
+
+    .lede {
+      margin: 0 0 1.25rem;
+      color: var(--proto-muted);
+      font-size: 0.875rem;
+      max-width: 70ch;
+    }
+
+    .wizard-chrome {
+      border: 1px solid var(--proto-border);
+      border-radius: 4px;
+      background: #fff;
+      overflow: visible;
+    }
+
+    .wizard-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--proto-border);
+      background: #fafafa;
+      font-size: 0.8125rem;
+      color: var(--proto-muted);
+    }
+
+    .wizard-body {
+      padding: 1.25rem 1.5rem 8rem;
+    }
+
+    .step-title {
+      margin: 0 0 0.35rem;
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
+
+    .step-desc {
+      margin: 0 0 1.25rem;
+      font-size: 0.875rem;
+      color: var(--proto-muted);
+      max-width: 62ch;
+    }
+
+    .policy-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.5rem;
+      max-width: 520px;
+    }
+
+    .policy-row .pf-v6-c-form-control {
+      flex: 1;
+    }
+
+    .trigger-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .popover-anchor {
+      position: absolute;
+      right: 0;
+      left: auto;
+      top: calc(100% + 8px);
+      bottom: auto;
+      z-index: 200;
+    }
+
+    .pf-v6-c-popover {
+      --pf-v6-c-popover--MaxWidth: 28.75rem;
+      width: 28.75rem;
+    }
+
+    .package-helper {
+      margin: 0.35rem 0 0;
+      font-size: 0.75rem;
+      color: var(--proto-muted);
+    }
+
+    .notes {
+      margin-top: 1.25rem;
+      font-size: 0.8125rem;
+      color: var(--proto-muted);
+    }
+
+    .notes ul {
+      margin: 0.4rem 0 0;
+      padding-left: 1.15rem;
+    }
+
+    .notes li { margin-bottom: 0.3rem; }
+  </style>
+</head>
+<body>
+  <header class="proto-header">
+    <h1>Image Builder — Compliance policy details</h1>
+    <p>Proposed update: show packages added by the selected Insights compliance policy.</p>
+  </header>
+
+  <main class="proto-main">
+    <div class="panel">
+      <h2>Policy details popover</h2>
+      <p class="lede">
+        Same Details popover as today, with an <strong>Included packages</strong> field.
+        Packages render as PatternFly labels. OpenSCAP always adds
+        <code>openscap-scanner</code> and <code>scap-security-guide</code>;
+        the policy can add more.
+      </p>
+
+      <div class="wizard-chrome">
+        <div class="wizard-bar">
+          <span>Create image wizard · Compliance</span>
+          <span>Interactive</span>
+        </div>
+        <div class="wizard-body">
+          <h3 class="step-title">Compliance</h3>
+          <p class="step-desc">
+            Select a policy to pre-harden this image. The policy can add packages,
+            services, kernel arguments, and filesystem changes.
+          </p>
+
+          <form class="pf-v6-c-form" onsubmit="return false;">
+            <div class="pf-v6-c-form__group">
+              <div class="pf-v6-c-form__group-label">
+                <label class="pf-v6-c-form__label" for="policy-select">
+                  <span class="pf-v6-c-form__label-text">Policy</span>
+                </label>
+              </div>
+              <div class="pf-v6-c-form__group-control">
+                <div class="policy-row">
+                  <span class="pf-v6-c-form-control">
+                    <select id="policy-select" aria-label="Policy">
+                      <option value="custom" selected>Custom Insights Compliance Policy</option>
+                      <option value="cis">CIS Red Hat Enterprise Linux 9 Benchmark</option>
+                      <option value="stig">DISA STIG for Red Hat Enterprise Linux 9</option>
+                    </select>
+                  </span>
+                  <div class="trigger-wrap">
+                    <button
+                      class="pf-v6-c-button pf-m-link"
+                      type="button"
+                      id="details-trigger"
+                      aria-expanded="true"
+                      aria-controls="policy-popover"
+                    >
+                      Details
+                    </button>
+                    <div class="popover-anchor" id="popover-anchor">
+                      <div
+                        class="pf-v6-c-popover pf-m-bottom-left"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="policy-popover-title"
+                        aria-describedby="policy-popover-body"
+                        id="policy-popover"
+                      >
+                        <div class="pf-v6-c-popover__arrow"></div>
+                        <div class="pf-v6-c-popover__content">
+                          <div class="pf-v6-c-popover__close">
+                            <button
+                              class="pf-v6-c-button pf-m-plain"
+                              type="button"
+                              aria-label="Close"
+                              id="popover-close"
+                            >
+                              <span class="pf-v6-c-button__icon">
+                                <svg fill="currentColor" height="1em" width="1em" viewBox="0 0 352 512" aria-hidden="true" role="img">
+                                  <path d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"></path>
+                                </svg>
+                              </span>
+                            </button>
+                          </div>
+                          <header class="pf-v6-c-popover__header">
+                            <h1 class="pf-v6-c-title pf-m-md" id="policy-popover-title">Details</h1>
+                          </header>
+                          <div class="pf-v6-c-popover__body" id="policy-popover-body">
+                            <dl class="pf-v6-c-description-list pf-m-compact" aria-label="Policy details">
+                              <div class="pf-v6-c-description-list__group">
+                                <dt class="pf-v6-c-description-list__term">
+                                  <span class="pf-v6-c-description-list__text">Policy type</span>
+                                </dt>
+                                <dd class="pf-v6-c-description-list__description">
+                                  <div class="pf-v6-c-description-list__text" id="field-type"></div>
+                                </dd>
+                              </div>
+                              <div class="pf-v6-c-description-list__group">
+                                <dt class="pf-v6-c-description-list__term">
+                                  <span class="pf-v6-c-description-list__text">Policy description</span>
+                                </dt>
+                                <dd class="pf-v6-c-description-list__description">
+                                  <div class="pf-v6-c-description-list__text" id="field-description"></div>
+                                </dd>
+                              </div>
+                              <div class="pf-v6-c-description-list__group">
+                                <dt class="pf-v6-c-description-list__term">
+                                  <span class="pf-v6-c-description-list__text">Business objective</span>
+                                </dt>
+                                <dd class="pf-v6-c-description-list__description">
+                                  <div class="pf-v6-c-description-list__text" id="field-objective"></div>
+                                </dd>
+                              </div>
+                              <div class="pf-v6-c-description-list__group">
+                                <dt class="pf-v6-c-description-list__term">
+                                  <span class="pf-v6-c-description-list__text">Compliance threshold</span>
+                                </dt>
+                                <dd class="pf-v6-c-description-list__description">
+                                  <div class="pf-v6-c-description-list__text" id="field-threshold"></div>
+                                </dd>
+                              </div>
+                              <div class="pf-v6-c-description-list__group">
+                                <dt class="pf-v6-c-description-list__term">
+                                  <span class="pf-v6-c-description-list__text">Included packages</span>
+                                </dt>
+                                <dd class="pf-v6-c-description-list__description">
+                                  <div class="pf-v6-c-label-group">
+                                    <div class="pf-v6-c-label-group__main">
+                                      <ul
+                                        class="pf-v6-c-label-group__list"
+                                        role="list"
+                                        aria-label="Packages added by this policy"
+                                        id="package-list"
+                                      ></ul>
+                                    </div>
+                                  </div>
+                                  <p class="package-helper">
+                                    Added by this policy. They show as required on the Packages step and cannot be removed.
+                                  </p>
+                                </dd>
+                              </div>
+                            </dl>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="notes">
+        <strong>What’s in this mock</strong>
+        <ul>
+          <li>Existing fields are unchanged: policy type, description, business objective, threshold.</li>
+          <li>New field uses PatternFly compact outline labels so package names stay scannable when the list grows.</li>
+          <li>Switch the policy dropdown to see how the package list changes.</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const POLICIES = {
+      custom: {
+        type: "Custom Insights Compliance Policy",
+        description:
+          "This policy provides comprehensive security controls and compliance requirements tailored for enterprise environments.",
+        objective:
+          "Maintain security standards and regulatory compliance for critical business systems.",
+        threshold: "90%",
+        packages: [
+          "openscap-scanner",
+          "scap-security-guide",
+          "aide",
+          "audit",
+          "libpwquality",
+          "rsyslog",
+          "chrony",
+          "firewalld"
+        ]
+      },
+      cis: {
+        type: "CIS Benchmark",
+        description:
+          "Center for Internet Security benchmark for Red Hat Enterprise Linux 9. Applies recommended hardening controls for general-purpose enterprise systems.",
+        objective: "Meet CIS Level 1 server hardening requirements.",
+        threshold: "85%",
+        packages: [
+          "openscap-scanner",
+          "scap-security-guide",
+          "aide",
+          "audit",
+          "libpwquality"
+        ]
+      },
+      stig: {
+        type: "DISA STIG",
+        description:
+          "Defense Information Systems Agency Security Technical Implementation Guide for Red Hat Enterprise Linux 9.",
+        objective: "Satisfy STIG requirements for systems in US government environments.",
+        threshold: "95%",
+        packages: [
+          "openscap-scanner",
+          "scap-security-guide",
+          "aide",
+          "audit",
+          "libpwquality",
+          "rsyslog",
+          "chrony",
+          "firewalld",
+          "usbguard",
+          "fapolicyd"
+        ]
+      }
+    };
+
+    const select = document.getElementById("policy-select");
+    const trigger = document.getElementById("details-trigger");
+    const popover = document.getElementById("policy-popover");
+    const closeBtn = document.getElementById("popover-close");
+    const packageList = document.getElementById("package-list");
+
+    function labelHtml(name) {
+      return (
+        '<li class="pf-v6-c-label-group__list-item">' +
+          '<span class="pf-v6-c-label pf-m-outline pf-m-compact">' +
+            '<span class="pf-v6-c-label__content">' +
+              '<span class="pf-v6-c-label__text">' + name + "</span>" +
+            "</span>" +
+          "</span>" +
+        "</li>"
+      );
+    }
+
+    function renderPolicy(key) {
+      const policy = POLICIES[key];
+      document.getElementById("field-type").textContent = policy.type;
+      document.getElementById("field-description").textContent = policy.description;
+      document.getElementById("field-objective").textContent = policy.objective;
+      document.getElementById("field-threshold").textContent = policy.threshold;
+      packageList.innerHTML = policy.packages.map(labelHtml).join("");
+    }
+
+    function setOpen(open) {
+      popover.hidden = !open;
+      trigger.setAttribute("aria-expanded", String(open));
+    }
+
+    select.addEventListener("change", () => {
+      renderPolicy(select.value);
+      setOpen(true);
+    });
+
+    trigger.addEventListener("click", () => {
+      setOpen(popover.hidden);
+    });
+
+    closeBtn.addEventListener("click", () => setOpen(false));
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") setOpen(false);
+    });
+
+    renderPolicy(select.value);
+    setOpen(true);
+  </script>
+</body>
+</html>

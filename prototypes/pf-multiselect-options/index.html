@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PatternFly Multiselect Options — Menu / MenuToggle</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@patternfly/patternfly@6.2.0/patternfly.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@patternfly/patternfly@6.2.0/patternfly-addons.css" />
+  <style>
+    :root {
+      --proto-bg: #f0f0f0;
+      --proto-panel: #fff;
+      --proto-border: #d2d2d2;
+      --proto-text: #151515;
+      --proto-muted: #6a6e73;
+      --proto-blue: #0066cc;
+      --proto-blue-light: #e7f1fa;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Red Hat Text", "RedHatText", Helvetica, Arial, sans-serif;
+      background: var(--proto-bg);
+      color: var(--proto-text);
+      min-height: 100vh;
+    }
+
+    .proto-header {
+      background: #151515;
+      color: #fff;
+      padding: 1rem 1.5rem;
+    }
+    .proto-header h1 { margin: 0; font-size: 1.125rem; font-weight: 500; }
+    .proto-header p  { margin: 0.25rem 0 0; font-size: 0.875rem; color: #c7c7c7; }
+
+    .proto-body {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    @media (max-width: 860px) { .proto-body { grid-template-columns: 1fr; } }
+
+    .variant-card {
+      background: var(--proto-panel);
+      border: 1px solid var(--proto-border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .variant-card h2 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .variant-card h2 .pf-v6-c-badge { font-size: 0.75rem; }
+    .variant-card .desc {
+      margin: 0;
+      font-size: 0.8125rem;
+      color: var(--proto-muted);
+      line-height: 1.45;
+    }
+
+    .select-wrapper {
+      position: relative;
+      margin-top: 0.5rem;
+    }
+
+    /* --- PF Menu / Toggle overrides for prototype --- */
+
+    .pf-v6-c-menu-toggle {
+      width: 100%;
+      justify-content: space-between;
+    }
+    .pf-v6-c-menu-toggle__controls {
+      margin-left: auto;
+    }
+
+    .pf-v6-c-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      max-height: 260px;
+      overflow-y: auto;
+      display: none;
+      box-shadow: 0 4px 8px rgba(0,0,0,.12);
+    }
+    .pf-v6-c-menu.open { display: block; }
+
+    .pf-v6-c-menu__list-item .pf-v6-c-check {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+    }
+    .pf-v6-c-menu__list-item .pf-v6-c-check input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--proto-blue);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    /* Typeahead input inside toggle */
+    .typeahead-input {
+      border: none;
+      outline: none;
+      font-family: inherit;
+      font-size: 0.875rem;
+      background: transparent;
+      flex: 1;
+      min-width: 80px;
+      padding: 0;
+    }
+    .typeahead-input::placeholder { color: var(--proto-muted); }
+
+    /* Label group inside typeahead toggle */
+    .pf-v6-c-label-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+    }
+    .pf-v6-c-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--proto-blue-light);
+      color: var(--proto-blue);
+      border: 1px solid #bee1f4;
+      border-radius: 3px;
+      padding: 1px 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      line-height: 1.5;
+      white-space: nowrap;
+    }
+    .pf-v6-c-label .remove-label {
+      background: none;
+      border: none;
+      color: var(--proto-blue);
+      cursor: pointer;
+      padding: 0;
+      font-size: 0.75rem;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+    }
+    .pf-v6-c-label .remove-label:hover { color: #004080; }
+
+    .pf-v6-c-label-group__close {
+      display: inline-flex;
+      align-items: center;
+    }
+    .pf-v6-c-label-group__close button {
+      background: none;
+      border: none;
+      color: var(--proto-muted);
+      cursor: pointer;
+      font-size: 0.75rem;
+      padding: 2px 4px;
+    }
+
+    .overflow-label {
+      background: #e0e0e0;
+      color: var(--proto-text);
+      border-color: #c7c7c7;
+      cursor: pointer;
+    }
+
+    /* Split button toggle */
+    .pf-v6-c-menu-toggle.pf-m-split-button {
+      display: inline-flex;
+      align-items: stretch;
+      padding: 0;
+    }
+    .pf-v6-c-menu-toggle.pf-m-split-button .split-check-section {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 6px 12px;
+      border-right: 1px solid var(--proto-border);
+      cursor: pointer;
+    }
+    .pf-v6-c-menu-toggle.pf-m-split-button .split-check-section input {
+      accent-color: var(--proto-blue);
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+    .pf-v6-c-menu-toggle.pf-m-split-button .split-toggle-btn {
+      display: flex;
+      align-items: center;
+      padding: 6px 10px;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    .use-case {
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      background: #f5f5f5;
+      border-radius: 4px;
+      font-size: 0.8125rem;
+      line-height: 1.5;
+    }
+    .use-case strong { display: block; margin-bottom: 0.25rem; font-size: 0.75rem; text-transform: uppercase; color: var(--proto-muted); letter-spacing: 0.5px; }
+
+    /* Checkmark icon for non-checkbox multiselect */
+    .pf-v6-c-menu__list-item[aria-selected="true"] .item-text::after {
+      content: "✓";
+      margin-left: auto;
+      color: var(--proto-blue);
+      font-weight: 700;
+    }
+    .pf-v6-c-menu__list-item .item-text {
+      display: flex;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<div class="proto-header">
+  <h1>Multiselect Options — PatternFly Menu + MenuToggle</h1>
+  <p>Interactive comparison of PF6-compliant multiselect patterns. Click each toggle to explore.</p>
+</div>
+
+<div class="proto-body">
+
+  <!-- ========== 1. Checkbox Select ========== -->
+  <div class="variant-card">
+    <h2>
+      <span>1. Checkbox Select</span>
+      <span class="pf-v6-c-badge pf-m-read">Standard</span>
+    </h2>
+    <p class="desc">
+      The default multiselect pattern. Toggle shows placeholder text and a badge
+      count of selected items. Menu items use checkboxes. Toggle remains open
+      after each selection.
+    </p>
+
+    <div class="select-wrapper" id="checkbox-select">
+      <button class="pf-v6-c-menu-toggle" type="button"
+              aria-expanded="false" aria-haspopup="true"
+              onclick="toggleMenu('checkbox-select')">
+        <span class="pf-v6-c-menu-toggle__text toggle-label" style="color:var(--proto-muted)">Filter by status</span>
+        <span class="pf-v6-c-menu-toggle__controls">
+          <span class="pf-v6-c-badge pf-m-read badge-count" style="display:none">0</span>
+          <span class="pf-v6-c-menu-toggle__toggle-icon">
+            <svg viewBox="0 0 320 512" width="12" height="12" fill="currentColor"><path d="M137.4 374.6c12.5 12.5 32.8 12.5 45.3 0l128-128c9.2-9.2 11.9-22.9 6.9-34.9S302.7 192 288 192H32c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l128 128z"/></svg>
+          </span>
+        </span>
+      </button>
+      <div class="pf-v6-c-menu" role="menu">
+        <ul class="pf-v6-c-menu__list" role="group">
+          <li class="pf-v6-c-menu__list-item" role="menuitemcheckbox" aria-checked="false">
+            <button class="pf-v6-c-menu__item" onclick="checkboxToggle(this, 'checkbox-select')">
+              <span class="pf-v6-c-check"><input type="checkbox" tabindex="-1" /><label>Running</label></span>
+            </button>
+          </li>
+          <li class="pf-v6-c-menu__list-item" role="menuitemcheckbox" aria-checked="false">
+            <button class="pf-v6-c-menu__item" onclick="checkboxToggle(this, 'checkbox-select')">
+              <span class="pf-v6-c-check"><input type="checkbox" tabindex="-1" /><label>Stopped</label></span>
+            </button>
+          </li>
+          <li class="pf-v6-c-menu__list-item" role="menuitemcheckbox" aria-checked="false">
+            <button class="pf-v6-c-menu__item" onclick="checkboxToggle(this, 'checkbox-select')">
+              <span class="pf-v6-c-check"><input type="checkbox" tabindex="-1" /><label>Degraded</label></span>
+            </button>
+          </li>
+          <li class="pf-v6-c-menu__list-item" role="menuitemcheckbox" aria-checked="false">
+            <button class="pf-v6-c-menu__item" onclick="checkboxToggle(this, 'checkbox-select')">
+              <span class="pf-v6-c-check"><input type="checkbox" tabindex="-1" /><label>Needs maintenance</label></span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="use-case">
+      <strong>When to use</strong>
+      Toolbar filters, status filters, or any scenario where users pick from a short, known list. Badge count gives a quick "how many active" signal.
+    </div>
+  </div>
+
+  <!-- ========== 2. Typeahead Multi with Labels ========== -->
+  <div class="variant-card">
+    <h2>
+      <span>2. Typeahead with Labels</span>
+      <span class="pf-v6-c-badge pf-m-read">Searchable</span>
+    </h2>
+    <p class="desc">
+      A typeahead input replaces the button toggle. Selected items render as
+      dismissible labels (chips) inside the toggle. Overflow labels collapse
+      behind a "+N more" indicator.
+    </p>
+
+    <div class="select-wrapper" id="typeahead-labels">
+      <div class="pf-v6-c-menu-toggle pf-m-typeahead" style="cursor:text; flex-wrap:wrap; gap:4px; align-items:center; min-height:36px; padding:4px 8px;"
+           onclick="document.getElementById('typeahead-labels-input').focus(); openMenu('typeahead-labels');"
+           aria-expanded="false" aria-haspopup="listbox">
+        <div class="pf-v6-c-label-group" id="typeahead-labels-chips"></div>
+        <input id="typeahead-labels-input" class="typeahead-input" type="text" placeholder="Select options…"
+               oninput="filterTypeahead('typeahead-labels', this.value)"
+               onfocus="openMenu('typeahead-labels')" />
+        <span class="pf-v6-c-menu-toggle__controls">
+          <span class="pf-v6-c-menu-toggle__toggle-icon">
+            <svg viewBox="0 0 320 512" width="12" height="12" fill="currentColor"><path d="M137.4 374.6c12.5 12.5 32.8 12.5 45.3 0l128-128c9.2-9.2 11.9-22.9 6.9-34.9S302.7 192 288 192H32c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l128 128z"/></svg>
+          </span>
+        </span>
+      </div>
+      <div class="pf-v6-c-menu" role="listbox" aria-multiselectable="true">
+        <ul class="pf-v6-c-menu__list">
+          <li class="pf-v6-c-menu__list-item" data-value="Kubernetes" aria-selected="false">
+            <button class="pf-v6-c-menu__item" onclick="typeaheadLabelToggle(this, 'typeahead-labels')"><span class="item-text">Kubernetes</span></button>
+          </li>
+          <li class="pf-v6-c-menu__list-item" data-value="OpenShift" aria-selected="false">
+            <button class="pf-v6-c-menu__item" onclick="typeaheadLabelToggle(this, 'typeahead-labels')"><span class="item-text">OpenShift</span></button>
+          </li>
+          <li class="pf-v6-c-menu__list-item" data-value="Ansible" aria-selected="false">
+            <button class="pf-v6-c-menu__item" onclick="typeaheadLabelToggle(this, 'typeahead-labels')"><span class="item-text">Ansible</span></button>
+          </li>
+          <li class="pf-v6-c-menu__list-item" data-value="RHEL" aria-selected="false">
+            <button class="pf-v6-c-menu__item" onclick="typeaheadLabelToggle(this, 'typeahead-labels')"><span class="item-text">RHEL</span></button>
+          </li>
+          <li class="pf-v6-c-menu__list-item" data-value="Podman" aria-selected="false">
+            <button class="pf-v6-c-menu__item" onclick="typeaheadLabelToggle(this, 'typeahead-labels')"><span class="item-text">Podman</span></button>
+          </li>
+          <li class="pf-v6-c-menu__list-item" data-value="Quay" aria-selected="false">
+            <button class="pf-v6-c-menu__item" onclick="typeaheadLabelToggle(this, 'typeahead-labels')"><span class="item-text">Quay</span></button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="use-case">
+      <strong>When to use</strong>
+      Long option lists where search is essential — tag pickers, product selectors, or assigning resources. Labels make selections visible at a glance.
+    </div>
+  </div>
+
+  <!-- ========== 3. Typeahead Multi with Checkboxes ========== -->
+  <div class="variant-card">
+    <h2>
+      <span>3. Typeahead with Checkboxes</span>
+      <span class="pf-v6-c-badge pf-m-read">Hybrid</span>
+    </h2>
+    <p class="desc">
+      Combines the typeahead filter input with checkbox menu items and a badge
+      count on the toggle. Best when the list is long but you want the explicit
+      checkbox affordance rather than chips.
+    </p>
+
+    <div class="select-wrapper" id="typeahead-checks">
+      <div class="pf-v6-c-menu-toggle pf-m-typeahead" style="cursor:text; min-height:36px; padding:4px 8px; align-items:center;"
+           onclick="document.getElementById('typeahead-checks-input').focus(); openMenu('typeahead-checks');"
+           aria-expanded="false" aria-haspopup="true">
+        <input id="typeahead-checks-input" class="typeahead-input" type="text" placeholder="Filter permissions…"
+               oninput="filterTypeahead('typeahead-checks', this.value)"
+               onfocus="openMenu('typeahead-checks')" />
+        <span class="pf-v6-c-menu-toggle__controls">
+          <span class="pf-v6-c-badge pf-m-read badge-count" style="display:none">0</span>
+          <span class="pf-v6-c-menu-toggle__toggle-icon">
+            <svg viewBox="0 0 320 512" width="12" height="12" fill="currentColor"><path d="M137.4 374.6c12.5 12.5 32.8 12.5 45.3 0l128-128c9.2-9.2 11.9-22.9 6.9-34.9S302.7 192 288 192H32c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l128 128z"/></svg>
+          </span>
+        </span>
+      </div>
+      <div class="pf-v6-c-menu" role="menu">
+        <ul class="pf-v6-c-menu__list" role="group">
+          <li class="pf-v6-c-menu__list-item" role="menuitemcheckbox" aria-checked="false" data-value="Read">
+            <button class="pf-v6-c-menu__item" onclick="checkboxToggle(this, 'typeahead-checks')">
+              <span class="pf-v6-c-check"><input type="checkbox" tabindex="-1" /><label>Read</label></span>
+            </button>
+          </li>
+          <li class="pf-v6-c-menu__list-item" role="menuitemcheckbox" aria-checked="false" data-value="Write">
+            <button class="pf-v6-c-menu__item" onclick="checkboxToggle(this, 'typeahead-checks')">
+              <span class="pf-v6-c-check"><input type="checkbox" tabindex="-1" /><label>Write</label></span>
+            </button>
+          </li>
+          <li class="pf-v6-c-menu__list-item" role="menuitemcheckbox" aria-checked="false" data-value="Execute">
+            <button class="pf-v6-c-menu__item" onclick="checkboxToggle(this, 'typeahead-checks')">
+              <span class="pf-v6-c-check"><input type="checkbox" tabindex="-1" /><label>Execute</label></span>
+            </button>
+          </li>
+          <li class="pf-v6-c-menu__list-item" role="menuitemcheckbox" aria-checked="false" data-value="Admin">
+            <button class="pf-v6-c-menu__item" onclick="checkboxToggle(this, 'typeahead-checks')">
+              <span class="pf-v6-c-check"><input type="checkbox" tabindex="-1" /><label>Admin</label></span>
+            </button>
+          </li>
+          <li class="pf-v6-c-menu__list-item" role="menuitemcheckbox" aria-checked="false" data-value="Delete">
+            <button class="pf-v6-c-menu__item" onclick="checkboxToggle(this, 'typeahead-checks')">
+              <span class="pf-v6-c-check"><input type="checkbox" tabindex="-1" /><label>Delete</label></span>
+            </button>
+          </li>
+          <li class="pf-v6-c-menu__list-item" role="menuitemcheckbox" aria-checked="false" data-value="Deploy">
+            <button class="pf-v6-c-menu__item" onclick="checkboxToggle(this, 'typeahead-checks')">
+              <span class="pf-v6-c-check"><input type="checkbox" tabindex="-1" /><label>Deploy</label></span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="use-case">
+      <strong>When to use</strong>
+      Permission pickers, role assignment, or any filterable list where checkboxes provide clearer selection state than checkmarks alone.
+    </div>
+  </div>
+
+  <!-- ========== 4. Split Button Checkbox Select ========== -->
+  <div class="variant-card">
+    <h2>
+      <span>4. Split Button Select</span>
+      <span class="pf-v6-c-badge pf-m-read">Bulk action</span>
+    </h2>
+    <p class="desc">
+      A split-button toggle pairs a "select all / none" checkbox on the left
+      with the dropdown caret on the right. Commonly used in table toolbars for
+      bulk row selection.
+    </p>
+
+    <div class="select-wrapper" id="split-select">
+      <div class="pf-v6-c-menu-toggle pf-m-split-button" aria-expanded="false">
+        <div class="split-check-section" onclick="splitBulkToggle('split-select')">
+          <input type="checkbox" id="split-bulk-cb" aria-label="Select all" />
+          <span class="split-label" style="font-size:0.875rem; color:var(--proto-muted);">0 selected</span>
+        </div>
+        <button class="split-toggle-btn" type="button" aria-label="Menu toggle" onclick="toggleMenu('split-select')">
+          <svg viewBox="0 0 320 512" width="12" height="12" fill="currentColor"><path d="M137.4 374.6c12.5 12.5 32.8 12.5 45.3 0l128-128c9.2-9.2 11.9-22.9 6.9-34.9S302.7 192 288 192H32c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l128 128z"/></svg>
+        </button>
+      </div>
+      <div class="pf-v6-c-menu" role="menu">
+        <ul class="pf-v6-c-menu__list" role="group">
+          <li class="pf-v6-c-menu__list-item" role="menuitem">
+            <button class="pf-v6-c-menu__item" onclick="splitAction('split-select','all')">Select all (4 items)</button>
+          </li>
+          <li class="pf-v6-c-menu__list-item" role="menuitem">
+            <button class="pf-v6-c-menu__item" onclick="splitAction('split-select','page')">Select page (4 items)</button>
+          </li>
+          <li class="pf-v6-c-menu__list-item" role="menuitem">
+            <button class="pf-v6-c-menu__item" onclick="splitAction('split-select','none')">Select none</button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- mock table rows to show bulk select effect -->
+    <div style="margin-top:0.75rem; border:1px solid var(--proto-border); border-radius:4px; overflow:hidden;">
+      <table style="width:100%; border-collapse:collapse; font-size:0.8125rem;">
+        <thead style="background:#f5f5f5;">
+          <tr>
+            <th style="width:32px; padding:6px 10px;"></th>
+            <th style="text-align:left; padding:6px 10px; font-weight:600;">Name</th>
+            <th style="text-align:left; padding:6px 10px; font-weight:600;">Status</th>
+          </tr>
+        </thead>
+        <tbody id="split-table-body">
+          <tr><td style="padding:6px 10px;"><input type="checkbox" class="split-row-cb" onchange="splitRowChange('split-select')" /></td><td style="padding:6px 10px;">cluster-east-01</td><td style="padding:6px 10px;">Running</td></tr>
+          <tr><td style="padding:6px 10px;"><input type="checkbox" class="split-row-cb" onchange="splitRowChange('split-select')" /></td><td style="padding:6px 10px;">cluster-west-02</td><td style="padding:6px 10px;">Stopped</td></tr>
+          <tr><td style="padding:6px 10px;"><input type="checkbox" class="split-row-cb" onchange="splitRowChange('split-select')" /></td><td style="padding:6px 10px;">cluster-central-03</td><td style="padding:6px 10px;">Running</td></tr>
+          <tr><td style="padding:6px 10px;"><input type="checkbox" class="split-row-cb" onchange="splitRowChange('split-select')" /></td><td style="padding:6px 10px;">cluster-south-04</td><td style="padding:6px 10px;">Degraded</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="use-case">
+      <strong>When to use</strong>
+      Table toolbars for bulk actions — select all, select page, select none. The split button gives a one-click "toggle all" plus granular menu options.
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ── Shared helpers ─────────────────────────────────────────────── */
+
+function toggleMenu(wrapperId) {
+  const wrapper = document.getElementById(wrapperId);
+  const menu = wrapper.querySelector('.pf-v6-c-menu');
+  const toggle = wrapper.querySelector('.pf-v6-c-menu-toggle');
+  const isOpen = menu.classList.contains('open');
+  closeAllMenus();
+  if (!isOpen) {
+    menu.classList.add('open');
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.classList.add('pf-m-expanded');
+  }
+}
+
+function openMenu(wrapperId) {
+  const wrapper = document.getElementById(wrapperId);
+  const menu = wrapper.querySelector('.pf-v6-c-menu');
+  const toggle = wrapper.querySelector('.pf-v6-c-menu-toggle');
+  if (!menu.classList.contains('open')) {
+    closeAllMenus();
+    menu.classList.add('open');
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.classList.add('pf-m-expanded');
+  }
+}
+
+function closeAllMenus() {
+  document.querySelectorAll('.pf-v6-c-menu.open').forEach(m => m.classList.remove('open'));
+  document.querySelectorAll('.pf-v6-c-menu-toggle[aria-expanded="true"]').forEach(t => {
+    t.setAttribute('aria-expanded', 'false');
+    t.classList.remove('pf-m-expanded');
+  });
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.select-wrapper')) closeAllMenus();
+});
+
+/* ── 1 & 3 · Checkbox select ───────────────────────────────────── */
+
+function checkboxToggle(btn, wrapperId) {
+  const li = btn.closest('.pf-v6-c-menu__list-item');
+  const cb = li.querySelector('input[type="checkbox"]');
+  const checked = li.getAttribute('aria-checked') === 'true';
+  li.setAttribute('aria-checked', String(!checked));
+  cb.checked = !checked;
+  updateBadge(wrapperId);
+}
+
+function updateBadge(wrapperId) {
+  const wrapper = document.getElementById(wrapperId);
+  const count = wrapper.querySelectorAll('[aria-checked="true"]').length;
+  const badge = wrapper.querySelector('.badge-count');
+  if (badge) {
+    badge.textContent = count;
+    badge.style.display = count > 0 ? 'inline-block' : 'none';
+  }
+}
+
+/* ── 2 · Typeahead with labels ──────────────────────────────────── */
+
+const typeaheadLabelState = {};
+
+function typeaheadLabelToggle(btn, wrapperId) {
+  const li = btn.closest('.pf-v6-c-menu__list-item');
+  const value = li.dataset.value;
+  const selected = li.getAttribute('aria-selected') === 'true';
+  li.setAttribute('aria-selected', String(!selected));
+
+  if (!typeaheadLabelState[wrapperId]) typeaheadLabelState[wrapperId] = new Set();
+  if (selected) typeaheadLabelState[wrapperId].delete(value);
+  else typeaheadLabelState[wrapperId].add(value);
+
+  renderLabels(wrapperId);
+  const input = document.getElementById(wrapperId + '-input');
+  input.value = '';
+  filterTypeahead(wrapperId, '');
+  input.focus();
+}
+
+function removeLabel(wrapperId, value) {
+  if (typeaheadLabelState[wrapperId]) typeaheadLabelState[wrapperId].delete(value);
+  const wrapper = document.getElementById(wrapperId);
+  const li = wrapper.querySelector(`[data-value="${value}"]`);
+  if (li) li.setAttribute('aria-selected', 'false');
+  renderLabels(wrapperId);
+}
+
+function renderLabels(wrapperId) {
+  const container = document.getElementById(wrapperId + '-chips');
+  const selected = typeaheadLabelState[wrapperId] ? [...typeaheadLabelState[wrapperId]] : [];
+  const MAX_VISIBLE = 3;
+  let html = '';
+
+  selected.slice(0, MAX_VISIBLE).forEach(val => {
+    html += `<span class="pf-v6-c-label">${val}<button class="remove-label" onclick="event.stopPropagation(); removeLabel('${wrapperId}','${val}')">✕</button></span>`;
+  });
+
+  if (selected.length > MAX_VISIBLE) {
+    html += `<span class="pf-v6-c-label overflow-label">${selected.length - MAX_VISIBLE} more</span>`;
+  }
+
+  container.innerHTML = html;
+
+  const input = document.getElementById(wrapperId + '-input');
+  input.placeholder = selected.length > 0 ? '' : 'Select options…';
+}
+
+/* ── 2 & 3 · Typeahead filtering ────────────────────────────────── */
+
+function filterTypeahead(wrapperId, query) {
+  const wrapper = document.getElementById(wrapperId);
+  const items = wrapper.querySelectorAll('.pf-v6-c-menu__list-item');
+  const q = query.toLowerCase();
+  items.forEach(item => {
+    const text = (item.dataset.value || item.textContent).toLowerCase();
+    item.style.display = text.includes(q) ? '' : 'none';
+  });
+}
+
+/* ── 4 · Split button select ────────────────────────────────────── */
+
+function splitAction(wrapperId, action) {
+  const rows = document.querySelectorAll('#split-table-body .split-row-cb');
+  if (action === 'all' || action === 'page') rows.forEach(r => r.checked = true);
+  if (action === 'none') rows.forEach(r => r.checked = false);
+  splitRowChange(wrapperId);
+  closeAllMenus();
+}
+
+function splitBulkToggle(wrapperId) {
+  const bulkCb = document.getElementById('split-bulk-cb');
+  const rows = document.querySelectorAll('#split-table-body .split-row-cb');
+  const allChecked = [...rows].every(r => r.checked);
+  const newState = !allChecked;
+  rows.forEach(r => r.checked = newState);
+  bulkCb.checked = newState;
+  updateSplitLabel(wrapperId);
+}
+
+function splitRowChange(wrapperId) {
+  const rows = document.querySelectorAll('#split-table-body .split-row-cb');
+  const checkedCount = [...rows].filter(r => r.checked).length;
+  const bulkCb = document.getElementById('split-bulk-cb');
+  bulkCb.checked = checkedCount === rows.length;
+  bulkCb.indeterminate = checkedCount > 0 && checkedCount < rows.length;
+  updateSplitLabel(wrapperId);
+}
+
+function updateSplitLabel(wrapperId) {
+  const wrapper = document.getElementById(wrapperId);
+  const label = wrapper.querySelector('.split-label');
+  const rows = document.querySelectorAll('#split-table-body .split-row-cb');
+  const count = [...rows].filter(r => r.checked).length;
+  label.textContent = count > 0 ? `${count} selected` : '0 selected';
+  label.style.color = count > 0 ? 'var(--proto-text)' : 'var(--proto-muted)';
+}
+</script>
+
+</body>
+</html>
